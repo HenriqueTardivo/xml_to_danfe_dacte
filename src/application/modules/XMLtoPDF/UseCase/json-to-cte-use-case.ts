@@ -1,5 +1,6 @@
-import { IDaCte, IinfNFe, Icms_generico } from "../../../interfaces/ICte";
+import { IDaCte, IinfNFe, Icms_generico } from "../../interfaces/ICte";
 import { MaskFields } from "../../../utils/MaskFields";
+import { filePath } from "../../../utils/filePath";
 
 class JsonToCTE {
   returnICMS(imposto: any): Icms_generico | null {
@@ -38,7 +39,7 @@ class JsonToCTE {
     const maskFields = new MaskFields();
 
     var fs = require("fs"),
-      danfe_roma = require("../../../danfe_modules/danfe/app"),
+      danfe_roma = require("../../pdf_generator/danfe-dacte/app"),
       Gerador = danfe_roma.Gerador,
       Danfe = danfe_roma.Danfe,
       Emitente = danfe_roma.Emitente,
@@ -51,9 +52,7 @@ class JsonToCTE {
       CteInfo = danfe_roma.CteInfo,
       Expeditor = danfe_roma.Expeditor,
       Recebedor = danfe_roma.Recebedor,
-      pathDoArquivoPdf = `${
-        process.env.CAMINHO_ARQUIVOS + nr_chacesso
-      }${nr_chacesso}.pdf`;
+      pathDoArquivoPdf = `${filePath}/${nr_chacesso}.pdf`;
 
     var cteInfo = new CteInfo();
     cteInfo.comTpCte(json.cteProc?.CTe?.infCte?.ide?.tpCTe?._text);

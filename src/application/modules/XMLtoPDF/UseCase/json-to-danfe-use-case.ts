@@ -1,4 +1,5 @@
-import { Idet, INfe, Icms_generico, Iduplicata } from "interfaces/INfe";
+import { filePath } from "../../../utils/filePath";
+import { Idet, INfe, Icms_generico, Iduplicata } from "../../interfaces/INfe";
 import { MaskFields } from "../../../utils/MaskFields";
 
 class JsonToDanfe {
@@ -22,7 +23,7 @@ class JsonToDanfe {
     const maskFields = new MaskFields();
 
     var fs = require("fs"),
-      danfe_roma = require("../../../danfe_modules/danfe/app"),
+      danfe_roma = require("../../pdf_generator/danfe-dacte/app"),
       Gerador = danfe_roma.Gerador,
       Danfe = danfe_roma.Danfe,
       Emitente = danfe_roma.Emitente,
@@ -35,7 +36,7 @@ class JsonToDanfe {
       Item = danfe_roma.Item,
       Duplicata = danfe_roma.Duplicata,
       Fatura = danfe_roma.Fatura,
-      pathDoArquivoPdf = `${process.env.CAMINHO_ARQUIVOS + nr_chacesso}.pdf`;
+      pathDoArquivoPdf = `${filePath}/${nr_chacesso}.pdf`;
 
     var emitente = new Emitente();
     emitente.comNome(json.nfeProc?.NFe.infNFe.emit.xNome?._text);
