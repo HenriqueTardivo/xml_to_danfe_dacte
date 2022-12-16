@@ -18,14 +18,14 @@ Será o nome do arquivo pdf
 
 Em text/plain o XML
 
-Exemplo de utilização:
+## Exemplo de utilização:
 
 Parametros:
 
-![alt text](https://imgur.com/zLHRi4Y)
+![alt text](./files//readme/Captura%20de%20tela%202022-12-16%20162825.png)
 
-![alt text](https://imgur.com/847elxu)
+![alt text](./files/readme//Captura%20de%20tela%202022-12-16%20162904.png)
 
 Nota gerada:
 
-![alt text](https://imgur.com/f94TgH0)
+![alt text](./files/readme//Captura%20de%20tela%202022-12-16%20162858.png)
