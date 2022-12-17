@@ -4,7 +4,7 @@ API desenvolvida para retorno de notas fiscais ou de frete
 
 Para DANFEs ( Notas fiscais ) utilize a rota `/danfe`
 
-Para DACTEs ( Conhecimento de frete ) utilize a rota `/danfe`
+Para DACTEs ( Conhecimento de frete ) utilize a rota `/dacte`
 
 Para ambas as rotas os parametros devem ser enviados da seguinte forma:
 
