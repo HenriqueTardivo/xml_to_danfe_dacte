@@ -37,12 +37,9 @@ class MaskFields {
       return "";
     }
 
-    if (data.length > 10)
-      return String(new Intl.DateTimeFormat("pt-br").format(new Date(data)));
+    if (data.length > 10) data = data.replace(/-/g, "/");
 
-    return String(
-      new Intl.DateTimeFormat("pt-br").format(new Date(data.replace(/-/g, "/")))
-    );
+    return String(new Intl.DateTimeFormat("pt-br").format(new Date(data)));
   }
 
   maskTime(data: string | undefined): string {
@@ -61,6 +58,8 @@ class MaskFields {
 
   maskDateTime(data: string | undefined): string {
     if (!data) return "";
+
+    if (data.length > 10) data = data.replace(/-/g, "/");
 
     return String(
       new Intl.DateTimeFormat("pt-br", {
