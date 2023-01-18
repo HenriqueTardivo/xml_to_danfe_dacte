@@ -1,6 +1,6 @@
-import { filePath } from "../../../utils/filePath";
-import { Idet, INfe, Icms_generico, Iduplicata } from "../../interfaces/INfe";
-import { MaskFields } from "../../../utils/MaskFields";
+import { filePath } from "../utils/filePath";
+import { Idet, INfe, Icms_generico, Iduplicata } from "../interfaces/INfe";
+import { MaskFields } from "../utils/mask-fields";
 
 class JsonToDanfe {
   find_ICMS_prod(imposto: any): Icms_generico {

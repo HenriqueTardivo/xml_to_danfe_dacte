@@ -1,6 +1,7 @@
-import { IDaCte, IinfNFe, Icms_generico } from "../../interfaces/ICte";
-import { MaskFields } from "../../../utils/MaskFields";
-import { filePath } from "../../../utils/filePath";
+import { IDaCte, IinfNFe, Icms_generico } from "../interfaces/ICte";
+import { filePath } from "../utils/filePath";
+import fs from "fs";
+import { Documento, Danfe } from "../entities";
 
 class JsonToCTE {
   returnICMS(imposto: any): Icms_generico | null {
@@ -36,10 +37,11 @@ class JsonToCTE {
   }
 
   async jsonToPDF(json: IDaCte, nr_chacesso: string): Promise<string> {
-    const maskFields = new MaskFields();
+    const danfe = new Danfe();
 
-    var fs = require("fs"),
-      danfe_roma = require("../../pdf_generator/danfe-dacte/app"),
+    const documento = new Documento({});
+
+    const danfe_roma = require("../../pdf_generator/danfe-dacte/app"),
       Gerador = danfe_roma.Gerador,
       Danfe = danfe_roma.Danfe,
       Emitente = danfe_roma.Emitente,

@@ -1,5 +1,5 @@
 class MaskFields {
-  maskCnpj(cnpj: string | undefined): string {
+  static maskCnpj(cnpj: string | undefined): string {
     if (!cnpj) return "";
 
     return cnpj.replace(
@@ -8,19 +8,19 @@ class MaskFields {
     );
   }
 
-  maskIE(ie: string | undefined): string {
+  static maskIE(ie: string | undefined): string {
     if (!ie) return "";
 
     return ie.replace(/(\d{3})?(\d{3})?(\d{3})?(\d{4})/, "$1.$2.$3-$4");
   }
 
-  maskCEP(cep: string | undefined): string {
+  static maskCEP(cep: string | undefined): string {
     if (!cep) return "";
 
     return cep.replace(/^([\d]{2})\.*([\d]{3})-*([\d]{3})/, "$1.$2-$3");
   }
 
-  maskNumber(number: string | undefined): string {
+  static maskNumber(number: string | number | undefined): string {
     if (number) {
       return "0,00";
     }
@@ -32,7 +32,7 @@ class MaskFields {
     );
   }
 
-  maskDate(data: string | undefined): string {
+  static maskDate(data: string | undefined): string {
     if (!data) {
       return "";
     }
@@ -42,7 +42,7 @@ class MaskFields {
     return String(new Intl.DateTimeFormat("pt-br").format(new Date(data)));
   }
 
-  maskTime(data: string | undefined): string {
+  static maskTime(data: string | undefined): string {
     if (!data) return "";
 
     if (data.length > 19) data = data.slice(0, 19);
@@ -56,7 +56,7 @@ class MaskFields {
     );
   }
 
-  maskDateTime(data: string | undefined): string {
+  static maskDateTime(data: string | undefined): string {
     if (!data) return "";
 
     if (data.length > 10) data = data.replace(/-/g, "/");
@@ -69,7 +69,7 @@ class MaskFields {
     );
   }
 
-  maskTelefone(telefone: string | undefined): string {
+  static maskTelefone(telefone: string | undefined): string {
     if (!telefone) return "";
 
     return telefone.replace(/^(\d{2})(\d{5})(\d{4})/, "($1)$2-$3");

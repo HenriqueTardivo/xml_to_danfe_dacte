@@ -1,5 +1,5 @@
-import { validationMiddleware } from "../../../../application/middlewares/validation";
 import { Router } from "express";
+import { validationMiddleware } from "../middlewares/validation";
 import { DanfeController } from "../controllers/danfe.controller";
 import { DacteController } from "../controllers/dacte.controller";
 

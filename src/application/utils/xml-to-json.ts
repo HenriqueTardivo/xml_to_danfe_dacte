@@ -1,6 +1,6 @@
 import convert from "xml-js";
 import * as fs from "fs";
-import { filePath } from "../../../utils/filePath";
+import { filePath } from "./filePath";
 
 export function xmlToJson(xml: string) {
   const options = { compact: true, ignoreComment: true, spaces: 1 };

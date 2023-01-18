@@ -190,7 +190,7 @@ interface IinfCarga {
   infQ: IinfQitem;
 }
 
-interface IinfQitem {
+export interface IinfQitem {
   cUnid: Ivalor;
   tpMed: Ivalor;
   qCarga: Ivalor;

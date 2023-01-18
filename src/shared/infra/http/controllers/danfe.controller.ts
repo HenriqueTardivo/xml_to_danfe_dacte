@@ -1,6 +1,6 @@
 import { INfe } from "./../../../../application/modules/interfaces/INfe";
 import { Response, Request } from "express";
-import { xmlToJson } from "../../../../application/modules/XMLtoPDF/UseCase/xml-to-json";
+import { xmlToJson } from "../../../../application/utils/xml-to-json";
 import { unlink } from "fs";
 import { JsonToDanfe } from "../../../../application/modules/XMLtoPDF/UseCase/json-to-danfe-use-case";
 
