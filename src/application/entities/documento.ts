@@ -1,4 +1,4 @@
-import { Duplicata, Fatura } from "application/entities";
+import { Duplicata, Fatura } from "../entities";
 import { Recebedor } from "./recebedor";
 import { Expeditor } from "./expeditor";
 import { Destinatario } from "./destinatario";
@@ -27,13 +27,10 @@ export interface DocumentoProps {
 }
 
 class Documento {
-  private props: DocumentoProps;
   private _danfeItems: ItemDanfe[];
   public orientacao = "retrato";
 
-  constructor(props: DocumentoProps) {
-    this.props = props;
-  }
+  constructor(private props: DocumentoProps) {}
 
   public addItem(item: ItemDanfe) {
     this._danfeItems.push(item);

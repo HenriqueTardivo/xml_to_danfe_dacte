@@ -1,6 +1,5 @@
 import { filePath } from "../../../utils/filePath";
 import { INfe } from "../../../interfaces/INfe";
-import fs from "fs";
 import {
   makeDanfe,
   makeDestinatario,

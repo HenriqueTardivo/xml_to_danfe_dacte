@@ -10,9 +10,7 @@ export interface FormularioDeSegurancaProps {
 }
 
 class FormularioDeSeguranca {
-  private props: FormularioDeSegurancaProps;
-
-  constructor(props: FormularioDeSegurancaProps) {
+  constructor(private props: FormularioDeSegurancaProps) {
     if (!props.justificativa || props.justificativa.length < 15) {
       throw new Error(
         [
@@ -21,8 +19,6 @@ class FormularioDeSeguranca {
         ].join("")
       );
     }
-
-    this.props = props;
   }
 
   public get destaqueDeIcmsProprio() {
@@ -41,7 +37,7 @@ class FormularioDeSeguranca {
 
   public get dadosDocumento() {
     return {
-      uf: this.props.documento.emitente.Endereco.uf,
+      uf: this.props?.documento?.emitente?.endereco?.uf,
       tipoDeEmissao: 5,
       cnpj: this.props.documento.emitente.registroNacional,
       valorDoDocumento: this.props.documento.danfe.valorTotalDaNota,

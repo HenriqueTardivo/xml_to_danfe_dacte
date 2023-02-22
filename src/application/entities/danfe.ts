@@ -22,9 +22,7 @@ export interface DanfeProps {
 }
 
 class Danfe {
-  private props: DanfeProps;
-
-  constructor(props: DanfeProps) {
+  constructor(private props: DanfeProps) {
     const numero = parseInt(props.numero, 10);
 
     if (isNaN(numero)) {

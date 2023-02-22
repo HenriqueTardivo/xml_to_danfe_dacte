@@ -8,11 +8,8 @@ export type EmitenteProps = Partial<{
   PessoaProps;
 
 class Emitente extends Pessoa {
-  private emitenteProps: EmitenteProps;
-
-  constructor(props: EmitenteProps) {
-    super(makePessoaProps(props));
-    this.emitenteProps = props;
+  constructor(private emitenteProps: EmitenteProps) {
+    super(makePessoaProps(emitenteProps));
   }
 
   public get logotipo() {

@@ -13,11 +13,7 @@ export type EnderecoProps = Partial<{
 }>;
 
 export class Endereco {
-  private props: EnderecoProps;
-
-  constructor(props: EnderecoProps) {
-    this.props = props;
-  }
+  constructor(private props: EnderecoProps) {}
 
   public get logradouro() {
     return this.props.logradouro || "";

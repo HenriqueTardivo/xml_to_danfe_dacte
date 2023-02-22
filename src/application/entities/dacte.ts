@@ -21,14 +21,11 @@ export interface DacteProps {
 }
 
 class Dacte {
-  private props: DacteProps;
   private _medidas: IinfQitem[] | IinfQitem;
   private _cubagem: string[] | string;
   private _volume: string[] | string;
 
-  constructor(props: DacteProps) {
-    this.props = props;
-  }
+  constructor(private props: DacteProps) {}
 
   public get tpCte() {
     return (

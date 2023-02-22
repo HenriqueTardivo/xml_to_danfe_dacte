@@ -1,4 +1,4 @@
-import { Duplicata } from "application/entities";
+import { Duplicata } from "../../../entities";
 import { chopArray } from "../../../utils/chop-array";
 import { Documento } from "../../../entities/documento";
 import { PdfGenerator } from "../../pdf-generate/pdf-generator";

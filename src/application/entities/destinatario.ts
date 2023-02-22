@@ -1,4 +1,4 @@
-import { PessoaProps } from "application/entities/pessoa";
+import { PessoaProps } from "../entities/pessoa";
 import { Pessoa } from "./pessoa";
 
 export type DestinatarioProps = PessoaProps;

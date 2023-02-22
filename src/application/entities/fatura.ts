@@ -9,11 +9,7 @@ export type FaturaProps = {
 };
 
 class Fatura {
-  private props: FaturaProps;
-
-  constructor(props: FaturaProps) {
-    this.props = props;
-  }
+  constructor(private props: FaturaProps) {}
 
   public get numero() {
     return this.props.numero || "";

@@ -7,11 +7,7 @@ export type DuplicataProps = Partial<{
 }>;
 
 class Duplicata {
-  private props: DuplicataProps;
-
-  constructor(props: DuplicataProps) {
-    this.props = props;
-  }
+  constructor(private props: DuplicataProps) {}
 
   public get numero() {
     return this.props.numero || "";
