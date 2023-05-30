@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+      "target": "es2020",
+      "experimentalDecorators": true,
+      "emitDecoratorMetadata": true,
+      "module": "commonjs",
+      "esModuleInterop": true,
+      "forceConsistentCasingInFileNames": true,
+      "resolveJsonModule": true,
+      "strict": true,
+      "baseUrl": "./",
+      "skipLibCheck": true,
+      "paths": {
+        "@controllers/*": ["./src/controllers/*"],
+        "@services/*": ["./src/services/*"],
+        "@realms": ["./realms/realms.json"],
+        "@useCase/*": ["./src/use-cases/*"],
+        "@middlewares/*": ["./src/middlewares/*"],
+        "@utils/*": ["./src/utils/*"],
+        "@test/*": ["./test/*"]
+      }
+    }
+  }
