@@ -5,11 +5,11 @@ export function validationMiddleware(
   response: Response,
   next: NextFunction
 ) {
-  const { nr_chacesso } = request.query;
+  const { chave_acesso } = request.query;
 
   const xml = request.body;
 
-  if (!nr_chacesso) {
+  if (!chave_acesso) {
     return response
       .status(500)
       .json({ message: "Chave de acesso não informada " });

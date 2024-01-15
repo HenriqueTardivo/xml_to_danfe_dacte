@@ -260,7 +260,6 @@ class JsonToCTE {
       maskFields.maskDate(json.cteProc?.protCTe?.infProt?.dhRecbto?._text)
     );
 
-    console.log(json.cteProc);
     let icms = this.returnICMS(json.cteProc?.CTe?.infCte?.imp?.ICMS);
 
     var impostos = new Impostos();
@@ -363,7 +362,6 @@ class JsonToCTE {
       },
       function (err: any, pdf: any) {
         if (err) {
-          console.log(err);
           throw err;
         }
 

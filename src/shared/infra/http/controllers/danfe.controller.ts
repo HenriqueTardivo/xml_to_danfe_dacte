@@ -1,13 +1,13 @@
-import { INfe } from "./../../../../application/modules/interfaces/INfe";
 import { Response, Request } from "express";
-import { xmlToJson } from "../../../../application/modules/XMLtoPDF/UseCase/xml-to-json";
 import { unlink } from "fs";
 import { JsonToDanfe } from "../../../../application/modules/XMLtoPDF/UseCase/json-to-danfe-use-case";
+import { xmlToJson } from "../../../../application/modules/XMLtoPDF/UseCase/xml-to-json";
+import { INfe } from "../../../../application/modules/interfaces/INfe";
 
 class DanfeController {
   async handle(request: Request, response: Response) {
     try {
-      const { nr_chacesso } = request.query;
+      const { chave_acesso } = request.query;
 
       const xml = request.body;
 
@@ -15,7 +15,7 @@ class DanfeController {
 
       const path = await new JsonToDanfe().jsonToPDF(
         json as INfe,
-        nr_chacesso as string
+        chave_acesso as string
       );
 
       setTimeout(() => {

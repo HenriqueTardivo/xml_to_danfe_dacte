@@ -1,13 +1,13 @@
 import { unlink } from "fs";
 import { Response, Request } from "express";
-import { IDaCte } from "./../../../../application/modules/interfaces/ICte";
+import { IDaCte } from "../../../../application/modules/interfaces/ICte";
 import { xmlToJson } from "../../../../application/modules/XMLtoPDF/UseCase/xml-to-json";
 import { JsonToCTE } from "../../../../application/modules/XMLtoPDF/UseCase/json-to-cte-use-case";
 
 class DacteController {
   async handle(request: Request, response: Response) {
     try {
-      const { nr_chacesso } = request.query;
+      const { chave_acesso } = request.query;
 
       const xml = request.body;
 
@@ -15,7 +15,7 @@ class DacteController {
 
       const path = await new JsonToCTE().jsonToPDF(
         json as IDaCte,
-        nr_chacesso as string
+        chave_acesso as string
       );
 
       setTimeout(() => {

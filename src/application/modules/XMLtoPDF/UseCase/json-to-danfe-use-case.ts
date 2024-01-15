@@ -414,7 +414,6 @@ class JsonToDanfe {
       },
       function (err: any, pdf: any) {
         if (err) {
-          console.log(err);
           throw err;
         }
 
