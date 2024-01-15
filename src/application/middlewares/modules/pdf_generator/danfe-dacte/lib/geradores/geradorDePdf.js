@@ -425,7 +425,7 @@ module.exports = function (danfe, args, callback) {
                     larguraDaDuplicataComMargem
                 );
                 titulo(
-                    duplicata.getNumero(),
+                    duplicata._numero,
                     x1 + margemEsquerdaDaDuplicata,
                     y + margemDeCimaDaDuplicata,
                     larguraDaDuplicataComMargem,
@@ -440,7 +440,7 @@ module.exports = function (danfe, args, callback) {
                     "left"
                 );
                 titulo(
-                    duplicata.getVencimentoFormatado(),
+                    duplicata._vencimento,
                     x1 + margemEsquerdaDaDuplicata,
                     y + margemDeCimaDaDuplicata + args.tamanhoDaFonteDoTitulo,
                     larguraDaDuplicataComMargem,
@@ -457,7 +457,7 @@ module.exports = function (danfe, args, callback) {
                     "left"
                 );
                 titulo(
-                    duplicata.getValorFormatado(),
+                    duplicata._valor,
                     x1 + margemEsquerdaDaDuplicata,
                     y +
                         margemDeCimaDaDuplicata +
@@ -1144,8 +1144,11 @@ module.exports = function (danfe, args, callback) {
             var maiorY = pdf.y;
 
             var descricao = item.getDescricao();
+
+            let infoAdicional = item.getInformacoesAdicionais();
+
             if (item.getInformacoesAdicionais()) {
-                descricao += "\n" + item.getInformacoesAdicionais();
+                descricao += "\n" + infoAdicional;
             }
 
             normal(
