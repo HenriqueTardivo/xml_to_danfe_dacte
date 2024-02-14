@@ -249,7 +249,7 @@ class JsonToCTE {
       }
     );
 
-    return pdfBase64;
+    return new Promise((resolve) => setTimeout(() => resolve(pdfBase64)));
   }
 }
 
