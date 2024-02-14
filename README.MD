@@ -1,31 +1,23 @@
-# API de impressão de nota
+# XML-TO-DANFE-DACTE
+This is an API for generating the "Documento Auxiliar da Nota Fiscal Eletrônica" (DANFE) or the "Documento Auxiliar do Conhecimento de Transporte Eletrônico" (DACTE) from the XML file of the Nota Fiscal Eletrônica (NFe) or Conhecimento de Transporte Eletrônico (CTe).
 
-API desenvolvida para retorno de notas fiscais ou de frete
+# Prerequisites
+You need Bun.js runtime installed on your machine. This project won't work with Node.js.
+To install Bun.js, follow the instructions on the [official website](https://bun.sh/).
 
-Para DANFEs ( Notas fiscais ) utilize a rota `/danfe`
+# Quick Start
+```
+git clone https://github.com/DenisBessa/xml_to_danfe_dacte.git
+cd xml_to_danfe_dacte
+bun install
+bun dev
+```
 
-Para DACTEs ( Conhecimento de frete ) utilize a rota `/dacte`
+# Use example
+```
+curl --location 'http://localhost:3000' \
+--header 'Content-Type: text/plain' \
+--data-raw '<nfeProc versao="4.00" xmlns="http://www.portalfiscal.inf.br/nfe"> { ... } </nfeProc>'
+```
 
-Para ambas as rotas os parametros devem ser enviados da seguinte forma:
-
-## Query params:
-
-nr_chacesso: < NÚMERO DA CHAVE DE ACESSO DA NOTA>
-
-Será o nome do arquivo pdf
-
-## Body params:
-
-Em text/plain o XML
-
-## Exemplo de utilização:
-
-Parametros:
-
-![alt text](./files/readme/Screenshot%202024-01-15%20at%2013.33.38.png)
-
-![alt text](./files/readme//Captura%20de%20tela%202022-12-16%20162904.png)
-
-Nota gerada:
-
-![alt text](./files/readme//Captura%20de%20tela%202022-12-16%20162858.png)
+Replace the `{ ... }` with the XML content. It should be a valid XML file of the NFe or CTe.

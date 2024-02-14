@@ -1,59 +1,25 @@
 {
   "name": "api_danfe",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "author": {
     "name": "Henrique Tardivo"
   },
-  "main": "index.js",
-  "license": "MIT",
+  "main": "index.ts",
   "dependencies": {
-    "cors": "^2.8.5",
-    "express": "^4.17.3",
     "inscricaoestadual": "0.0.2",
     "pdfkit": "^0.13.0",
-    "reflect-metadata": "^0.1.13",
     "xml-js": "^1.6.11"
   },
-  "scripts": {
-    "dev:server": "ts-node-dev --inspect --transpile-only --ignore-watch node_modules src/shared/infra/http/server.ts",
-    "start": "ts-node src/shared/infra/http/server.ts",
-    "commit": "git-cz",
-    "build": "babel src --extensions \".js,.ts\" --out-dir dist"
-  },
   "devDependencies": {
-    "@babel/cli": "^7.12.10",
-    "@babel/core": "^7.12.10",
-    "@babel/node": "^7.12.10",
-    "@babel/plugin-proposal-class-properties": "^7.12.1",
-    "@babel/plugin-proposal-decorators": "^7.12.12",
-    "@babel/preset-env": "^7.12.11",
-    "@babel/preset-typescript": "^7.12.7",
-    "@commitlint/cli": "^12.1.4",
-    "@commitlint/config-conventional": "^12.1.4",
-    "@types/cors": "^2.8.12",
-    "@types/express": "^4.17.13",
-    "@types/node": "^17.0.23",
-    "@types/oracledb": "^5.2.3",
     "@types/pdfkit": "^0.12.6",
     "@types/xml-js": "^1.0.0",
-    "alltested": "0.0.3",
-    "babel-plugin-module-resolver": "^4.0.0",
-    "babel-plugin-transform-typescript-metadata": "^0.3.1",
-    "commitizen": "^4.2.4",
-    "cz-conventional-changelog": "3.3.0",
-    "grunt": "^0.4.5",
-    "grunt-contrib-jshint": "^0.10.0",
-    "grunt-contrib-nodeunit": "^0.4.1",
-    "husky": "^6.0.0",
-    "ts-node-dev": "^1.1.8",
-    "typescript": "^4.6.3"
+    "typescript": "^4.6.3",
+    "@types/bun": "latest"
   },
-  "config": {
-    "commitizen": {
-      "path": "./node_modules/cz-conventional-changelog"
-    }
-  },
-  "optionalDependencies": {
-    "fsevents": "2.1.2"
+  "license": "MIT",
+  "scripts": {
+    "dev": " bun --hot index.ts",
+    "start": "bun index.ts",
+    "build": "bun build index.ts"
   }
 }
