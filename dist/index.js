@@ -43,22 +43,23 @@ var json_to_danfe_use_case_1 = require("./modules/XMLtoPDF/UseCase/json-to-danfe
 var xml_to_json_1 = require("./modules/XMLtoPDF/UseCase/xml-to-json");
 function handler(req, res) {
     return __awaiter(this, void 0, void 0, function () {
-        var xml, authorization, isDanfe, isDacte, json, pdfBase64, _a, error_1;
+        var xml, authorization, returnType, isDanfe, isDacte, json, pdfBase64, _a, pdfBuffer, uuid, fileName, error_1;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
                     _b.trys.push([0, 6, , 7]);
-                    xml = req.body, authorization = req.headers.authorization;
-                    if (!authorization || authorization !== process.env.XML_TO_DANFE_SECRET) {
-                        throw new Error('Missing authorization header');
+                    xml = req.body, authorization = req.headers.authorization, returnType = req.query.return_type;
+                    if (process.env.XML_TO_DANFE_SECRET &&
+                        (!authorization || authorization !== process.env.XML_TO_DANFE_SECRET)) {
+                        throw new Error("Missing or invalid authorization header");
                     }
                     // check if body is a text
-                    if (typeof xml !== 'string' || !xml.length)
-                        throw new Error('Invalid XML');
-                    isDanfe = xml.includes('www.portalfiscal.inf.br/nfe');
-                    isDacte = xml.includes('www.portalfiscal.inf.br/cte');
+                    if (typeof xml !== "string" || !xml.length)
+                        throw new Error("Invalid XML");
+                    isDanfe = xml.includes("www.portalfiscal.inf.br/nfe");
+                    isDacte = xml.includes("www.portalfiscal.inf.br/cte");
                     if (!isDanfe && !isDacte)
-                        throw new Error('Invalid XML');
+                        throw new Error("Invalid XML");
                     return [4 /*yield*/, (0, xml_to_json_1.xmlToJson)(xml)];
                 case 1:
                     json = _b.sent();
@@ -73,6 +74,15 @@ function handler(req, res) {
                     _b.label = 5;
                 case 5:
                     pdfBase64 = _a;
+                    if (returnType === "download") {
+                        pdfBuffer = Buffer.from(pdfBase64, "base64");
+                        uuid = crypto.randomUUID();
+                        fileName = isDanfe ? "danfe-".concat(uuid, ".pdf") : "dacte-".concat(uuid, ".pdf");
+                        res.setHeader("Content-Type", "application/pdf");
+                        res.setHeader("Content-Disposition", "attachment; filename=\"".concat(fileName, "\""));
+                        res.setHeader("Content-Length", pdfBuffer.length);
+                        return [2 /*return*/, res.send(pdfBuffer)];
+                    }
                     return [2 /*return*/, res.json({ pdfBase64: pdfBase64 })];
                 case 6:
                     error_1 = _b.sent();
