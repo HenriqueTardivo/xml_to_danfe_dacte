@@ -364,8 +364,6 @@ class JsonToDanfe {
 					item.imposto?.ICMS || item.imposto?.ICMSSN,
 				);
 
-				console.log(icms);
-
 				danfe.adicionarItem(
 					new Item()
 						.comCodigo(item.prod?.cProd?._text)

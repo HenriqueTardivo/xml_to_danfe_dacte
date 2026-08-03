@@ -1,21 +1,23 @@
 {
 	"compilerOptions": {
+		"baseUrl": ".",
 		"paths": {
 			"@/*": ["./src/*"]
 		},
 		"module": "CommonJS",
+		"moduleResolution": "node",
 		"rootDir": "./src",
 		"outDir": "dist",
-		"target": "es5",
-		"lib": ["es6"],
+		"target": "ES2022",
+		"lib": ["ES2022"],
+		"types": ["node"],
 		"sourceMap": true,
-		"moduleResolution": "node",
-		"allowJs": true,
-		"checkJs": false,
 		"esModuleInterop": true,
+		"resolveJsonModule": true,
+		"forceConsistentCasingInFileNames": true,
 		"skipLibCheck": true,
 		"strict": true,
-		"declaration": false // Desativa a geração de declarações
+		"declaration": false
 	},
 	"include": ["src"]
 }
