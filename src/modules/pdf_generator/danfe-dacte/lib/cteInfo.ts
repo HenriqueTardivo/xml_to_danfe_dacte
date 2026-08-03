@@ -327,23 +327,23 @@ export default class CteInfo {
 		return this._comUF;
 	}
 	// SEGURO DA CARGA
-	comNomeSeg(_xSeg: Maybe): Maybe {
+	comNomeSeg(_xSeg: Maybe): this {
 		this._xSeg = _xSeg;
-		return this._xSeg;
+		return this;
 	}
 	getNomeSeg(): Maybe {
 		return this._xSeg;
 	}
-	comRespSeg(_xResp: Maybe): Maybe {
+	comRespSeg(_xResp: Maybe): this {
 		this._xResp = _xResp;
-		return this._xResp;
+		return this;
 	}
 	getRespSeg(): Maybe {
 		return this._xResp;
 	}
-	comApol(_nApol: Maybe): Maybe {
+	comApol(_nApol: Maybe): this {
 		this._nApol = _nApol;
-		return this._nApol;
+		return this;
 	}
 	getApol(): Maybe {
 		return this._nApol;
@@ -352,16 +352,16 @@ export default class CteInfo {
 	getRodo(): Xml {
 		return this._rodoTaf;
 	}
-	comRodo(_rodoTaf: Xml): Xml {
+	comRodo(_rodoTaf: Xml): this {
 		this._rodoTaf = _rodoTaf;
-		return this._rodoTaf;
+		return this;
 	}
 	// Carga OS
 	getCargaOS(): Xml {
 		return this._cargaOS;
 	}
-	comCargaOS(_cargaOS: Xml): Xml {
+	comCargaOS(_cargaOS: Xml): this {
 		this._cargaOS = _cargaOS;
-		return this._cargaOS;
+		return this;
 	}
 }

@@ -11,6 +11,8 @@
 		"start": "node dist/server.js",
 		"fonts-copy": "cp -r ./src/modules/pdf_generator/danfe-dacte/lib/geradores/fontes ./dist/modules/pdf_generator/danfe-dacte/lib/geradores/fontes",
 		"build": "tsc && tsc-alias && npm run fonts-copy",
+		"test": "tsx --test tests/*.test.ts",
+		"test:golden": "tsx tests/golden/atualizar.ts",
 		"lint": "biome check ./src",
 		"format": "biome format --write ./src"
 	},

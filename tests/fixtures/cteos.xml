@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  CT-e OS (modelo 67) mínimo, montado à mão apenas para exercitar a detecção e
+  o caminho de geração do DACTE-OS. Não é um documento fiscal real e não
+  substitui um XML de exemplo de verdade (ver TODO(model-67) no use-case).
+-->
+<cteOSProc versao="4.00" xmlns="http://www.portalfiscal.inf.br/cte">
+    <CTeOS versao="4.00">
+        <infCte Id="CTe35240399999994018888670010000001231000000123" versao="4.00">
+            <ide>
+                <cUF>35</cUF>
+                <CFOP>5932</CFOP>
+                <natOp>PRESTACAO DE SERVICO DE TRANSPORTE</natOp>
+                <mod>67</mod>
+                <serie>1</serie>
+                <nCT>123</nCT>
+                <dhEmi>2024-05-10T10:00:00-03:00</dhEmi>
+                <tpImp>1</tpImp>
+                <tpEmis>1</tpEmis>
+                <tpAmb>2</tpAmb>
+                <tpCTe>0</tpCTe>
+                <modal>01</modal>
+                <tpServ>6</tpServ>
+                <UFIni>SP</UFIni>
+                <UFFim>SP</UFFim>
+            </ide>
+            <emit>
+                <CNPJ>99999994018888</CNPJ>
+                <IE>111111111111</IE>
+                <xNome>TRANSPORTADORA DE TESTE LTDA</xNome>
+                <enderEmit>
+                    <xLgr>RUA DE TESTE</xLgr>
+                    <nro>100</nro>
+                    <xBairro>CENTRO</xBairro>
+                    <cMun>3524402</cMun>
+                    <xMun>JABOTICABAL</xMun>
+                    <CEP>14870000</CEP>
+                    <UF>SP</UF>
+                    <fone>1633334444</fone>
+                </enderEmit>
+            </emit>
+            <dest>
+                <CNPJ>99999994018889</CNPJ>
+                <IE>222222222222</IE>
+                <xNome>TOMADOR DE TESTE LTDA</xNome>
+            </dest>
+        </infCte>
+    </CTeOS>
+    <protCTe versao="4.00">
+        <infProt>
+            <tpAmb>2</tpAmb>
+            <verAplic>SP_CTeOS</verAplic>
+            <chCTe>35240399999994018888670010000001231000000123</chCTe>
+            <dhRecbto>2024-05-10T10:05:00-03:00</dhRecbto>
+            <nProt>135240000000123</nProt>
+            <cStat>100</cStat>
+            <xMotivo>Autorizado o uso do CT-e</xMotivo>
+        </infProt>
+    </protCTe>
+</cteOSProc>
