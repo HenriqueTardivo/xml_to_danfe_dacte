@@ -1,0 +1,208 @@
+<cteProc xmlns="http://www.portalfiscal.inf.br/cte" versao="1.03">
+    <CTe xmlns="http://www.portalfiscal.inf.br/cte">
+        <infCte Id="CTe99999704012799900349570040000165560001225662"
+            versao="1.03">
+            <ide>
+                <cUF>35</cUF>
+                <cCT>000122566</cCT>
+                <CFOP>6353</CFOP>
+                <natOp>Transporte a estabelecimento comercial</natOp>
+                <forPag>1</forPag>
+                <mod>57</mod>
+                <serie>4</serie>
+                <nCT>16556</nCT>
+                <dhEmi>2011-07-05T14:42:29</dhEmi>
+                <tpImp>1</tpImp>
+                <tpEmis>2</tpEmis>
+                <cDV>2</cDV>
+                <tpAmb>2</tpAmb>
+                <tpCTe>0</tpCTe>
+                <procEmi>0</procEmi>
+                <verProc>1.0</verProc>
+                <cMunEmi>3534401</cMunEmi>
+                <xMunEmi>OSASCO</xMunEmi>
+                <UFEmi>SP</UFEmi>
+                <modal>01</modal>
+                <tpServ>0</tpServ>
+                <cMunIni>3534401</cMunIni>
+                <xMunIni>OSASCO</xMunIni>
+                <UFIni>SP</UFIni>
+                <cMunFim>5300108</cMunFim>
+                <xMunFim>GAMA</xMunFim>
+                <UFFim>DF</UFFim>
+                <retira>1</retira>
+                <toma03>
+                    <toma>3</toma>
+                </toma03>
+            </ide>
+            <emit>
+                <CNPJ>00000000000100</CNPJ>
+                <IE>12342322</IE>
+                <xNome>WebDANFE</xNome>
+                <enderEmit>
+                    <xLgr>Rua TimÃ£o</xLgr>
+                    <nro>42</nro>
+                    <xBairro>Terceira DivisÃ£o</xBairro>
+                    <cMun>3534401</cMun>
+                    <xMun>Sao Paulo</xMun>
+                    <CEP>08383015</CEP>
+                    <UF>SP</UF>
+                    <fone>01135556200</fone>
+                </enderEmit>
+            </emit>
+            <rem>
+                <CNPJ>99999999999199</CNPJ>
+                <IE>42424242424</IE>
+                <xNome>Willy Wonka Chocolates S.A</xNome>
+                <enderReme>
+                    <xLgr>R do Folclore</xLgr>
+                    <nro>928</nro>
+                    <xBairro>CENTRO</xBairro>
+                    <cMun>3522901</cMun>
+                    <xMun>Curupira</xMun>
+                    <CEP>00000042</CEP>
+                    <UF>XP</UF>
+                </enderReme>
+                <infNF>
+                    <serie>U</serie>
+                    <nDoc>13387</nDoc>
+                    <dEmi>2011-07-05</dEmi>
+                    <vBC>921.90</vBC>
+                    <vICMS>0.00</vICMS>
+                    <vBCST>0.00</vBCST>
+                    <vST>0.00</vST>
+                    <vProd>0.00</vProd>
+                    <vNF>921.90</vNF>
+                    <nCFOP>6353</nCFOP>
+                </infNF>
+            </rem>
+            <exped>
+                <CNPJ>8422428306823</CNPJ>
+                <IE>321312412</IE>
+                <xNome>Zombie Factory LTDA</xNome>
+                <fone>01155556200</fone>
+                <enderExped>
+                    <xLgr>Rua dos 4 olhos</xLgr>
+                    <nro>S/N</nro>
+                    <xBairro>INDUSTRIAL</xBairro>
+                    <cMun>3534401</cMun>
+                    <xMun>Zombieland</xMun>
+                    <CEP>43234225</CEP>
+                    <UF>ZX</UF>
+                </enderExped>
+            </exped>
+            <dest>
+                <CNPJ>31415926535897</CNPJ>
+                <IE>31415926535897</IE>
+                <xNome>PI nÃºmeros transcedentais iLTDA</xNome>
+                <fone>314159265</fone>
+                <enderDest>
+                    <xLgr>Rua Transcedental</xLgr>
+                    <nro>314</nro>
+                    <xBairro>Real</xBairro>
+                    <cMun>5300108</cMun>
+                    <xMun>Algebra</xMun>
+                    <CEP>31415926</CEP>
+                    <UF>PI</UF>
+                </enderDest>
+            </dest>
+            <vPrest>
+                <vTPrest>50.13</vTPrest>
+                <vRec>50.13</vRec>
+                <Comp>
+                    <xNome>IMPOSTO CLIENTE</xNome>
+                    <vComp>3.51</vComp>
+                </Comp>
+                <Comp>
+                    <xNome>PEDAGIO</xNome>
+                    <vComp>5.00</vComp>
+                </Comp>
+                <Comp>
+                    <xNome>FRETE PESO</xNome>
+                    <vComp>41.62</vComp>
+                </Comp>
+            </vPrest>
+            <imp>
+                <ICMS>
+                    <CST00>
+                        <CST>00</CST>
+                        <vBC>50.13</vBC>
+                        <pICMS>7.00</pICMS>
+                        <vICMS>3.51</vICMS>
+                    </CST00>
+                </ICMS>
+            </imp>
+            <infCTeNorm>
+                <infCarga>
+                    <vMerc>921.90</vMerc>
+                    <proPred>DIVERSOS</proPred>
+                    <infQ>
+                        <cUnid>03</cUnid>
+                        <tpMed>UNIDADE</tpMed>
+                        <qCarga>4</qCarga>
+                    </infQ>
+                    <infQ>
+                        <cUnid>00</cUnid>
+                        <tpMed>PESO CUBADO</tpMed>
+                        <qCarga>0.3964</qCarga>
+                    </infQ>
+                    <infQ>
+                        <cUnid>01</cUnid>
+                        <tpMed>PESO REAL</tpMed>
+                        <qCarga>88.0000</qCarga>
+                    </infQ>
+                    <infQ>
+                        <cUnid>01</cUnid>
+                        <tpMed>PESO BASE DE CALCULO</tpMed>
+                        <qCarga>118.9200</qCarga>
+                    </infQ>
+                </infCarga>
+                <seg>
+                    <respSeg>4</respSeg>
+                </seg>
+                <rodo>
+                    <RNTRC>00000000123027</RNTRC>
+                    <dPrev>2011-07-11</dPrev>
+                    <lota>0</lota>
+                </rodo>
+            </infCTeNorm>
+        </infCte>
+        <Signature xmlns="http://www.w3.org/2000/09/xmldsig#">
+            <SignedInfo>
+                <CanonicalizationMethod
+                    Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" />
+                <SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" />
+                <Reference URI="#CTe99999999012744000349570040000165560001225662">
+                    <Transforms>
+                        <Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" />
+                        <Transform Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" />
+                    </Transforms>
+                    <DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" />
+                    <DigestValue>eFWH/VAzwb+MQuBSp9NWZdzXdL4=</DigestValue>
+                </Reference>
+            </SignedInfo>
+            <SignatureValue>
+                hwwQxMPiydxhjYi14HCSRY5kpkj4SATXeqXQc8MHh9bH34xMEeTxXELTB8E2kVmKkdp8Wvm8uuEVxZv13qTCnX7k60xNSE0VWFvaYM5PJwKA5uOy3dX2jA40uzITRsy2Vlk=
+            </SignatureValue>
+            <KeyInfo>
+                <X509Data>
+                    <X509Certificate>
+                        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
+                    </X509Certificate>
+                </X509Data>
+            </KeyInfo>
+        </Signature>
+    </CTe>
+    <protCTe versao="1.03">
+        <infProt>
+            <tpAmb>2</tpAmb>
+            <verAplic>SP_PL_CTe_103d</verAplic>
+            <chCTe>99999994018888000349570040000165560001225662</chCTe>
+            <dhRecbto>2011-07-05T14:42:56</dhRecbto>
+            <nProt>135110011494444</nProt>
+            <digVal>eFWH/VAzwb+MQuBSp9NWZdzXdL4=</digVal>
+            <cStat>100</cStat>
+            <xMotivo>Autorizado o uso do CT-e</xMotivo>
+        </infProt>
+    </protCTe>
+</cteProc>

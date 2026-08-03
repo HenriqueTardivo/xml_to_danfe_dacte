@@ -174,6 +174,7 @@ export interface Idet {
 
 export interface Iimposto {
 	ICMS: Iicms;
+	ICMSSN?: Iicms;
 	II: Iimportacao;
 	IPI: Iipi;
 	PIS: Ipis;
