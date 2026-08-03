@@ -25,14 +25,14 @@ export default class Transportador extends Pessoa {
 	// NOTE: legacy behaviour preserved on purpose — this setter never stored the
 	// value, so the plate is always rendered empty. Changing it would alter the
 	// existing DANFE output.
-	comPlacaDoVeiculo(_placaDoVeiculo: Maybe): string | undefined {
-		return this._placaDoVeiculo;
+	comPlacaDoVeiculo(_placaDoVeiculo: Maybe): this {
+		return this;
 	}
 	getUfDaPlacaDoVeiculo(): string {
 		return this._ufDaPlacaDoVeiculo || "";
 	}
 	// NOTE: legacy behaviour preserved on purpose — see comPlacaDoVeiculo above.
-	comUfDaPlacaDoVeiculo(_ufDaPlacaDoVeiculo: Maybe): string | undefined {
-		return this._ufDaPlacaDoVeiculo;
+	comUfDaPlacaDoVeiculo(_ufDaPlacaDoVeiculo: Maybe): this {
+		return this;
 	}
 }

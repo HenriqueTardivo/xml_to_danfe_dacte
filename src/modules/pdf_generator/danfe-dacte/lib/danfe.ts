@@ -212,8 +212,8 @@ export default class Danfe {
 	// alter the existing DANFE output.
 	comInscricaoEstadualDoSubstitutoTributario(
 		_inscricaoEstadualDoSubstitutoTributario: Maybe,
-	): string | undefined {
-		return this._inscricaoEstadualDoSubstitutoTributario;
+	): this {
+		return this;
 	}
 	getValorDoFrete(): Valor {
 		return this._valorDoFrete || 0;

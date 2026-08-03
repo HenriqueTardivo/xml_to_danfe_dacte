@@ -1,18 +1,31 @@
-import type { IDaCte } from "@/modules/interfaces/IDaCte";
+import type { IDaCte, IinfNFe } from "@/modules/interfaces/IDaCte";
 import type { Icms_generico } from "@/modules/interfaces/IDaCte";
+import type { IinfProt } from "@/modules/interfaces/INfe";
 import CteInfo from "@/modules/pdf_generator/danfe-dacte/lib/cteInfo";
 import Danfe from "@/modules/pdf_generator/danfe-dacte/lib/danfe";
 import Destinatario from "@/modules/pdf_generator/danfe-dacte/lib/destinatario";
 import Emitente from "@/modules/pdf_generator/danfe-dacte/lib/emitente";
 import Endereco from "@/modules/pdf_generator/danfe-dacte/lib/endereco";
 import Expeditor from "@/modules/pdf_generator/danfe-dacte/lib/expeditor";
-import Gerador from "@/modules/pdf_generator/danfe-dacte/lib/gerador";
+import { gerarPdfEmBase64 } from "@/modules/pdf_generator/danfe-dacte/lib/gerarPdfEmBase64";
 import Impostos from "@/modules/pdf_generator/danfe-dacte/lib/impostos";
 import Item from "@/modules/pdf_generator/danfe-dacte/lib/item";
 import Protocolo from "@/modules/pdf_generator/danfe-dacte/lib/protocolo";
 import Recebedor from "@/modules/pdf_generator/danfe-dacte/lib/recebedor";
 import Transportador from "@/modules/pdf_generator/danfe-dacte/lib/transportador";
-import { MaskFields } from "@/utils/MaskFields";
+import {
+	cep,
+	cnpj,
+	data,
+	dataHora,
+	lista,
+	maiusculas,
+	numero,
+	primeiro,
+	texto,
+} from "@/utils/campos-do-xml";
+
+type InfCte = NonNullable<NonNullable<IDaCte["cteProc"]>["CTe"]>["infCte"];
 
 class JsonToCTE {
 	returnICMS(imposto: any): Icms_generico | null {
@@ -47,324 +60,221 @@ class JsonToCTE {
 		return result;
 	}
 
-	async jsonToPDF(json: IDaCte): Promise<string> {
-		const maskFields = new MaskFields();
+	private montarCteInfo(infCte?: InfCte): CteInfo {
+		const ide = infCte?.ide;
+		const norm = infCte?.infCTeNorm;
+		const rodo = norm?.infModal?.rodo;
 
-		let pdfBase64 = "";
+		return new CteInfo()
+			.comTpCte(texto(ide?.tpCTe))
+			.comTpServ(texto(ide?.tpServ))
+			// Sem `toma3` o tomador é o "outros" (código 4).
+			.comToma(texto(ide?.toma3?.toma) || "4")
+			.comModalFrete(texto(ide?.modal))
+			.comCfopFrete(`${texto(ide?.CFOP)} - ${texto(ide?.natOp)}`)
+			.comInicioPrestacao(
+				`${texto(ide?.xMunIni)} - ${texto(ide?.UFIni)}`.toUpperCase(),
+			)
+			.comFinalDaPrestacao(
+				`${texto(ide?.xMunFim)} - ${texto(ide?.UFFim)}`.toUpperCase(),
+			)
+			.comModelo(texto(ide?.mod))
+			.comProdPred(texto(norm?.infCarga?.proPred))
+			.comCarga(norm?.infCarga?.infQ)
+			.comObservacao(
+				this.montaObservacao(
+					texto(infCte?.compl?.xObs),
+					infCte?.compl?.ObsCont,
+				),
+			)
+			.comRNTRC(texto(rodo?.RNTRC))
+			.comCIOT(texto(rodo?.CIOT))
+			.comDataEntrega(data(rodo?.dPrev))
+			.comOutrasCaracCarga(texto(norm?.infCarga?.xOutCat))
+			.comComponenteServico(infCte?.vPrest?.Comp);
+	}
 
-		const cteInfo = new CteInfo();
-		cteInfo.comTpCte(json.cteProc?.CTe?.infCte?.ide?.tpCTe?._text);
-		cteInfo.comTpServ(json.cteProc?.CTe?.infCte.ide?.tpServ?._text);
+	private montarRecebedor(infCte?: InfCte): Recebedor {
+		const receb = infCte?.receb;
+		const ender = receb?.enderReceb;
 
-		if (json.cteProc?.CTe?.infCte.ide?.toma3?.toma?._text) {
-			cteInfo.comToma(json.cteProc?.CTe?.infCte?.ide?.toma3?.toma?._text);
-		} else {
-			cteInfo.comToma("4");
-		}
-		cteInfo.comModalFrete(json.cteProc?.CTe?.infCte.ide.modal?._text);
-		cteInfo.comCfopFrete(
-			`${json.cteProc?.CTe?.infCte.ide.CFOP?._text} - ${json.cteProc?.CTe?.infCte.ide.natOp?._text}`,
-		);
-		cteInfo.comInicioPrestacao(
-			String(
-				`${json.cteProc?.CTe?.infCte.ide.xMunIni._text} - ${json.cteProc?.CTe?.infCte.ide.UFIni?._text}`,
-			).toUpperCase(),
-		);
-		cteInfo.comFinalDaPrestacao(
-			String(
-				`${json.cteProc?.CTe?.infCte.ide.xMunFim._text} - ${json.cteProc?.CTe?.infCte.ide.UFFim?._text}`,
-			).toUpperCase(),
-		);
-		cteInfo.comModelo(json.cteProc?.CTe?.infCte.ide.mod._text);
-		cteInfo.comProdPred(
-			json.cteProc?.CTe?.infCte?.infCTeNorm?.infCarga?.proPred?._text,
-		);
-		cteInfo.comCarga(json.cteProc?.CTe?.infCte?.infCTeNorm?.infCarga?.infQ);
-		cteInfo.comObservacao(
-			this.montaObservacao(
-				json.cteProc?.CTe?.infCte?.compl?.xObs?._text,
-				json.cteProc?.CTe?.infCte?.compl?.ObsCont,
-			),
-		);
-		cteInfo.comRNTRC(
-			json.cteProc?.CTe?.infCte?.infCTeNorm?.infModal?.rodo?.RNTRC?._text,
-		);
-		cteInfo.comCIOT(
-			json.cteProc?.CTe?.infCte?.infCTeNorm?.infModal?.rodo?.CIOT?._text,
-		);
-		cteInfo.comDataEntrega(
-			maskFields.maskDate(
-				json.cteProc?.CTe?.infCte?.infCTeNorm?.infModal?.rodo?.dPrev?._text,
-			),
-		);
-		cteInfo.comOutrasCaracCarga(
-			json.cteProc?.CTe?.infCte.infCTeNorm?.infCarga?.xOutCat?._text, /////////
-		);
-		cteInfo.comComponenteServico(json.cteProc?.CTe?.infCte?.vPrest?.Comp);
-
-		const recebedor = new Recebedor();
-		recebedor.comNome(json.cteProc?.CTe?.infCte.receb?.xNome?._text);
-		recebedor.comRegistroNacional(
-			maskFields.maskCnpj(json.cteProc?.CTe?.infCte?.receb?.CNPJ?._text),
-		);
-		recebedor.comInscricaoEstadual(json.cteProc?.CTe?.infCte?.receb?.IE?._text);
-		recebedor.comTelefone(json.cteProc?.CTe?.infCte.receb?.fone?._text);
-		recebedor.comEmail("");
-		recebedor.comEndereco(
-			new Endereco()
-				.comLogradouro(json.cteProc?.CTe?.infCte.receb?.enderReceb?.xLgr?._text)
-				.comNumero(json.cteProc?.CTe?.infCte.receb?.enderReceb?.nro?._text)
-				.comComplemento(
-					json.cteProc?.CTe?.infCte.receb?.enderReceb?.xCpl?._text,
-				)
-				.comCep(
-					maskFields.maskCEP(
-						json.cteProc?.CTe?.infCte.receb?.enderReceb?.CEP?._text,
-					),
-				)
-				.comBairro(json.cteProc?.CTe?.infCte.receb?.enderReceb?.xBairro?._text)
-				.comMunicipio(json.cteProc?.CTe?.infCte.receb?.enderReceb?.xMun?._text)
-				.comCidade(json.cteProc?.CTe?.infCte.receb?.enderReceb?.xMun?._text)
-				.comUf(json.cteProc?.CTe?.infCte.receb?.enderReceb?.UF?._text)
-				.comPais(json.cteProc?.CTe?.infCte.receb?.enderReceb?.xPais?._text),
-		);
-
-		const expeditor = new Expeditor();
-		expeditor.comNome(json.cteProc?.CTe?.infCte.exped?.xNome?._text);
-		expeditor.comRegistroNacional(
-			maskFields.maskCnpj(json.cteProc?.CTe?.infCte?.exped?.CNPJ?._text),
-		);
-		expeditor.comInscricaoEstadual(json.cteProc?.CTe?.infCte?.exped?.IE?._text);
-		expeditor.comTelefone(json.cteProc?.CTe?.infCte.exped?.fone?._text);
-		expeditor.comEmail("");
-		expeditor.comEndereco(
-			new Endereco()
-				.comLogradouro(json.cteProc?.CTe?.infCte.exped?.enderExped?.xLgr?._text)
-				.comNumero(json.cteProc?.CTe?.infCte.exped?.enderExped?.nro?._text)
-				.comComplemento(
-					json.cteProc?.CTe?.infCte.exped?.enderExped?.xCpl?._text,
-				)
-				.comCep(
-					maskFields.maskCEP(
-						json.cteProc?.CTe?.infCte.exped?.enderExped?.CEP?._text,
-					),
-				)
-				.comBairro(json.cteProc?.CTe?.infCte.exped?.enderExped?.xBairro?._text)
-				.comMunicipio(json.cteProc?.CTe?.infCte.exped?.enderExped?.xMun?._text)
-				.comCidade(json.cteProc?.CTe?.infCte.exped?.enderExped?.xMun?._text)
-				.comUf(json.cteProc?.CTe?.infCte.exped?.enderExped?.UF?._text)
-				.comPais(json.cteProc?.CTe?.infCte.exped?.enderExped?.xPais?._text),
-		);
-
-		const emitente = new Emitente();
-		emitente.comNome(json.cteProc?.CTe?.infCte.emit?.xNome?._text);
-		emitente.comRegistroNacional(
-			maskFields.maskCnpj(json.cteProc?.CTe?.infCte?.emit?.CNPJ?._text),
-		);
-		emitente.comInscricaoEstadual(json.cteProc?.CTe?.infCte?.emit?.IE?._text);
-		emitente.comTelefone(
-			json.cteProc?.CTe?.infCte.emit?.enderEmit?.fone?._text,
-		);
-		emitente.comEmail("");
-		emitente.comEndereco(
-			new Endereco()
-				.comLogradouro(json.cteProc?.CTe?.infCte.emit?.enderEmit.xLgr?._text)
-				.comNumero(json.cteProc?.CTe?.infCte.emit?.enderEmit.nro?._text)
-				.comComplemento(json.cteProc?.CTe?.infCte.emit?.enderEmit.xCpl?._text)
-				.comCep(
-					maskFields.maskCEP(
-						json.cteProc?.CTe?.infCte.emit.enderEmit?.CEP?._text,
-					),
-				)
-				.comBairro(json.cteProc?.CTe?.infCte.emit?.enderEmit.xBairro?._text)
-				.comMunicipio(
-					String(
-						json.cteProc?.CTe?.infCte.emit?.enderEmit.xMun?._text,
-					).toUpperCase(),
-				)
-				.comCidade(json.cteProc?.CTe?.infCte.emit?.enderEmit.xMun?._text)
-				.comUf(json.cteProc?.CTe?.infCte.emit?.enderEmit.UF?._text)
-				.comPais(json.cteProc?.CTe?.infCte.emit?.enderEmit?.xPais?._text),
-		);
-
-		const destinatario = new Destinatario();
-		destinatario.comNome(json.cteProc?.CTe?.infCte.dest?.xNome?._text);
-		destinatario.comRegistroNacional(
-			maskFields.maskCnpj(json.cteProc?.CTe?.infCte?.dest?.CNPJ?._text),
-		);
-		destinatario.comTelefone(json.cteProc?.CTe?.infCte.dest?.fone?._text); //Criamos na INfe.ts
-		destinatario.comInscricaoEstadual(
-			json.cteProc?.CTe?.infCte?.dest?.IE?._text,
-		);
-		destinatario.comEndereco(
-			new Endereco()
-				.comLogradouro(json.cteProc?.CTe?.infCte.dest?.enderDest?.xLgr?._text)
-				.comNumero(json.cteProc?.CTe?.infCte.dest?.enderDest?.nro?._text)
-				// .comComplemento("") //json.cteProc?.CTe?.infCte.rem?.enderReme.xCpl?._text
-				.comCep(
-					maskFields.maskCEP(
-						json.cteProc?.CTe?.infCte.dest?.enderDest?.CEP?._text,
-					),
-				)
-				.comBairro(json.cteProc?.CTe?.infCte.dest?.enderDest?.xBairro?._text)
-				.comMunicipio(
-					String(
-						json.cteProc?.CTe?.infCte.dest?.enderDest?.xMun?._text,
-					).toUpperCase(),
-				)
-				.comCidade(json.cteProc?.CTe?.infCte.dest?.enderDest?.xMun?._text)
-				.comUf(json.cteProc?.CTe?.infCte.dest?.enderDest?.UF?._text)
-				.comPais(json.cteProc?.CTe?.infCte.dest?.enderDest?.xPais?._text),
-		);
-
-		const transportador = new Transportador();
-		transportador.comNome(json.cteProc?.CTe?.infCte.rem?.xNome?._text);
-		transportador.comRegistroNacional(
-			maskFields.maskCnpj(json.cteProc?.CTe?.infCte.rem?.CNPJ?._text),
-		);
-		transportador.comInscricaoEstadual(
-			json.cteProc?.CTe?.infCte.rem?.IE?._text,
-		);
-		transportador.comTelefone(json.cteProc?.CTe?.infCte?.rem?.fone?._text);
-		transportador.comEndereco(
-			new Endereco()
-				.comLogradouro(json.cteProc?.CTe?.infCte?.rem?.enderReme?.xLgr?._text)
-				.comNumero(json.cteProc?.CTe?.infCte?.rem?.enderReme?.nro?._text)
-				.comCep(
-					maskFields.maskCEP(
-						json.cteProc?.CTe?.infCte.rem?.enderReme?.CEP?._text,
-					),
-				)
-				.comBairro(json.cteProc?.CTe?.infCte.rem?.enderReme?.xBairro?._text)
-				.comMunicipio(
-					String(
-						json.cteProc?.CTe?.infCte.rem?.enderReme?.xMun?._text,
-					).toUpperCase(),
-				)
-				.comCidade(json.cteProc?.CTe?.infCte.rem?.enderReme?.xMun?._text)
-				.comUf(json.cteProc?.CTe?.infCte.rem?.enderReme?.UF?._text)
-				.comPais(json.cteProc?.CTe?.infCte.rem?.enderReme?.xPais?._text),
-		);
-
-		const protocolo = new Protocolo();
-		protocolo.comCodigo(json.cteProc?.protCTe?.infProt?.nProt?._text);
-		protocolo.comData(
-			maskFields.maskDate(json.cteProc?.protCTe?.infProt?.dhRecbto?._text),
-		);
-
-		const icms = this.returnICMS(json.cteProc?.CTe?.infCte?.imp?.ICMS);
-
-		const impostos = new Impostos();
-		impostos.comBaseDeCalculoDoIcms(
-			maskFields.maskNumber(
-				icms?.vBC?._text || icms?.vBCSTRet?._text || icms?.vBCOutraUF?._text,
-			),
-		);
-		impostos.comValorDoIcms(
-			maskFields.maskNumber(icms?.vICMS?._text || icms?.vICMSOutraUF?._text),
-		);
-		impostos.comValorDoIcmsSt(maskFields.maskNumber(icms?.vICMSSTRet?._text));
-		impostos.comValorDoPis(icms?.CST?._text); /// usado o mesmo campo para CST
-		impostos.comValorTotalDoIpi(
-			maskFields.maskNumber(icms?.pICMS?._text || icms?.pICMSOutraUF?._text),
-		); // aliquota ICMS
-		impostos.comValorDaCofins(
-			maskFields.maskNumber(json.cteProc?.CTe?.infCte?.imp?.pRedBC?._text),
-		); // RED
-
-		const danfe = new Danfe();
-		danfe.comChaveDeAcesso(json.cteProc?.protCTe?.infProt.chCTe?._text);
-		danfe.comEmitente(emitente);
-		danfe.comDestinatario(destinatario);
-		danfe.comTransportador(transportador);
-		danfe.comCteInfo(cteInfo);
-		danfe.comRecebedor(recebedor);
-		danfe.comExpeditor(expeditor);
-		danfe.comProtocolo(protocolo);
-		danfe.comImpostos(impostos);
-		danfe.comTipo("saida");
-		danfe.comNaturezaDaOperacao(json.cteProc?.CTe?.infCte.ide.natOp?._text);
-		danfe.comNumero(json.cteProc?.CTe?.infCte.ide.nCT?._text);
-		danfe.comSerie(json.cteProc?.CTe?.infCte.ide.serie?._text);
-		danfe.comDataDaEmissao(
-			maskFields.maskDateTime(json.cteProc?.CTe?.infCte.ide.dhEmi?._text),
-		);
-		danfe.comDataDaEntradaOuSaida(
-			maskFields.maskDate(json.cteProc?.protCTe?.infProt.dhRecbto?._text),
-		);
-		danfe.comModalidadeDoFrete(json.cteProc?.CTe?.infCte.ide.modal?._text); // json.cteProc?.CTe?.infCte.ide.mod?._text
-		danfe.comInscricaoEstadualDoSubstitutoTributario("");
-		danfe.comInformacoesComplementares("");
-		danfe.comValorTotalDosProdutos(
-			maskFields.maskNumber(
-				json.cteProc?.CTe?.infCte.infCTeNorm?.infCarga?.vCarga?._text,
-			),
-		);
-		danfe.comValorTotalDosServicos(
-			maskFields.maskNumber(json.cteProc?.CTe?.infCte?.vPrest?.vTPrest?._text),
-		);
-		danfe.comValorDoFrete(
-			maskFields.maskNumber(json.cteProc?.CTe?.infCte?.vPrest?.vRec?._text),
-		);
-
-		if (
-			json.cteProc?.CTe?.infCte.infCTeNorm?.infDoc?.infNFe &&
-			Array.isArray(json.cteProc?.CTe?.infCte.infCTeNorm?.infDoc?.infNFe)
-		) {
-			for (const item of json.cteProc?.CTe?.infCte.infCTeNorm?.infDoc?.infNFe) {
-				danfe.adicionarItem(
-					new Item()
-						.comCodigo(item.chave._text)
-						.comDescricao(
-							`${String(item.chave._text).substring(22, 25)}/${String(item.chave._text).substring(25, 34)}`,
-						),
-				);
-			}
-		} else if (json.cteProc?.CTe?.infCte.infCTeNorm?.infDoc?.infNFe) {
-			danfe.adicionarItem(
-				new Item()
-					.comCodigo(
-						json.cteProc?.CTe?.infCte.infCTeNorm?.infDoc?.infNFe.chave._text,
-					)
-					.comDescricao(
-						`${String(
-							json.cteProc?.CTe?.infCte.infCTeNorm?.infDoc?.infNFe.chave._text,
-						).substring(22, 25)}/${String(
-							json.cteProc?.CTe?.infCte.infCTeNorm?.infDoc?.infNFe.chave._text,
-						).substring(25, 34)}`,
-					),
+		return new Recebedor()
+			.comNome(texto(receb?.xNome))
+			.comRegistroNacional(cnpj(receb?.CNPJ))
+			.comInscricaoEstadual(texto(receb?.IE))
+			.comTelefone(texto(receb?.fone))
+			.comEmail("")
+			.comEndereco(
+				new Endereco()
+					.comLogradouro(texto(ender?.xLgr))
+					.comNumero(texto(ender?.nro))
+					.comComplemento(texto(ender?.xCpl))
+					.comCep(cep(ender?.CEP))
+					.comBairro(texto(ender?.xBairro))
+					.comMunicipio(texto(ender?.xMun))
+					.comCidade(texto(ender?.xMun))
+					.comUf(texto(ender?.UF))
+					.comPais(texto(ender?.xPais)),
 			);
-		}
+	}
 
-		new Gerador(danfe).gerarCTE(
-			{
-				ambiente:
-					json.cteProc?.protCTe?.infProt.tpAmb._text === "2"
-						? "homologacao"
-						: "producao",
-				ajusteYDoLogotipo: -4,
-				ajusteYDaIdentificacaoDoEmitente: 4,
-				creditos: "",
-			},
-			(err: Error, pdf: PDFKit.PDFDocument) => {
-				if (err) {
-					throw err;
-				}
+	private montarExpeditor(infCte?: InfCte): Expeditor {
+		const exped = infCte?.exped;
+		const ender = exped?.enderExped;
 
-				const chunks: Buffer[] = [];
+		return new Expeditor()
+			.comNome(texto(exped?.xNome))
+			.comRegistroNacional(cnpj(exped?.CNPJ))
+			.comInscricaoEstadual(texto(exped?.IE))
+			.comTelefone(texto(exped?.fone))
+			.comEmail("")
+			.comEndereco(
+				new Endereco()
+					.comLogradouro(texto(ender?.xLgr))
+					.comNumero(texto(ender?.nro))
+					.comComplemento(texto(ender?.xCpl))
+					.comCep(cep(ender?.CEP))
+					.comBairro(texto(ender?.xBairro))
+					.comMunicipio(texto(ender?.xMun))
+					.comCidade(texto(ender?.xMun))
+					.comUf(texto(ender?.UF))
+					.comPais(texto(ender?.xPais)),
+			);
+	}
 
-				pdf.on("data", (chunk: Buffer) => {
-					chunks.push(chunk);
-				});
+	private montarEmitente(infCte?: InfCte): Emitente {
+		const emit = infCte?.emit;
+		const ender = emit?.enderEmit;
 
-				pdf.on("end", () => {
-					const data = Buffer.concat(chunks);
-					pdfBase64 = data.toString("base64");
-				});
-			},
+		return new Emitente()
+			.comNome(texto(emit?.xNome))
+			.comRegistroNacional(cnpj(emit?.CNPJ))
+			.comInscricaoEstadual(texto(emit?.IE))
+			.comTelefone(texto(ender?.fone))
+			.comEmail("")
+			.comEndereco(
+				new Endereco()
+					.comLogradouro(texto(ender?.xLgr))
+					.comNumero(texto(ender?.nro))
+					.comComplemento(texto(ender?.xCpl))
+					.comCep(cep(ender?.CEP))
+					.comBairro(texto(ender?.xBairro))
+					.comMunicipio(maiusculas(ender?.xMun))
+					.comCidade(texto(ender?.xMun))
+					.comUf(texto(ender?.UF))
+					.comPais(texto(ender?.xPais)),
+			);
+	}
+
+	private montarDestinatario(infCte?: InfCte): Destinatario {
+		const dest = infCte?.dest;
+		const ender = dest?.enderDest;
+
+		return new Destinatario()
+			.comNome(texto(dest?.xNome))
+			.comRegistroNacional(cnpj(dest?.CNPJ))
+			.comTelefone(texto(dest?.fone))
+			.comInscricaoEstadual(texto(dest?.IE))
+			.comEndereco(
+				new Endereco()
+					.comLogradouro(texto(ender?.xLgr))
+					.comNumero(texto(ender?.nro))
+					.comCep(cep(ender?.CEP))
+					.comBairro(texto(ender?.xBairro))
+					.comMunicipio(maiusculas(ender?.xMun))
+					.comCidade(texto(ender?.xMun))
+					.comUf(texto(ender?.UF))
+					.comPais(texto(ender?.xPais)),
+			);
+	}
+
+	/** No DACTE o remetente (`rem`) ocupa o quadro do transportador. */
+	private montarRemetente(infCte?: InfCte): Transportador {
+		const rem = infCte?.rem;
+		const ender = rem?.enderReme;
+
+		return new Transportador()
+			.comNome(texto(rem?.xNome))
+			.comRegistroNacional(cnpj(rem?.CNPJ))
+			.comInscricaoEstadual(texto(rem?.IE))
+			.comTelefone(texto(rem?.fone))
+			.comEndereco(
+				new Endereco()
+					.comLogradouro(texto(ender?.xLgr))
+					.comNumero(texto(ender?.nro))
+					.comCep(cep(ender?.CEP))
+					.comBairro(texto(ender?.xBairro))
+					.comMunicipio(maiusculas(ender?.xMun))
+					.comCidade(texto(ender?.xMun))
+					.comUf(texto(ender?.UF))
+					.comPais(texto(ender?.xPais)),
+			);
+	}
+
+	private montarProtocolo(prot?: IinfProt): Protocolo {
+		return new Protocolo()
+			.comCodigo(texto(prot?.nProt))
+			.comData(data(prot?.dhRecbto));
+	}
+
+	private montarImpostos(infCte?: InfCte): Impostos {
+		const icms = this.returnICMS(infCte?.imp?.ICMS);
+
+		return (
+			new Impostos()
+				.comBaseDeCalculoDoIcms(
+					numero(primeiro(icms?.vBC, icms?.vBCSTRet, icms?.vBCOutraUF)),
+				)
+				.comValorDoIcms(numero(primeiro(icms?.vICMS, icms?.vICMSOutraUF)))
+				.comValorDoIcmsSt(numero(icms?.vICMSSTRet))
+				// NOTE: legacy preserved — o DACTE reaproveita campos do DANFE: CST vai
+				// no lugar do PIS, a alíquota do ICMS no do IPI e a redução no COFINS.
+				.comValorDoPis(texto(icms?.CST))
+				.comValorTotalDoIpi(numero(primeiro(icms?.pICMS, icms?.pICMSOutraUF)))
+				.comValorDaCofins(numero(infCte?.imp?.pRedBC))
 		);
+	}
 
-		return new Promise((resolve) => setTimeout(() => resolve(pdfBase64)));
+	private montarDocumentos(infCte?: InfCte): Item[] {
+		return lista<IinfNFe>(infCte?.infCTeNorm?.infDoc?.infNFe).map((nfe) => {
+			const chave = String(texto(nfe.chave));
+
+			return new Item()
+				.comCodigo(texto(nfe.chave))
+				.comDescricao(`${chave.substring(22, 25)}/${chave.substring(25, 34)}`);
+		});
+	}
+
+	jsonToPDF(json: IDaCte): Promise<string> {
+		const infCte = json.cteProc?.CTe?.infCte;
+		const prot = json.cteProc?.protCTe?.infProt;
+		const ide = infCte?.ide;
+
+		const danfe = new Danfe()
+			.comChaveDeAcesso(texto(prot?.chCTe))
+			.comEmitente(this.montarEmitente(infCte))
+			.comDestinatario(this.montarDestinatario(infCte))
+			.comTransportador(this.montarRemetente(infCte))
+			.comCteInfo(this.montarCteInfo(infCte))
+			.comRecebedor(this.montarRecebedor(infCte))
+			.comExpeditor(this.montarExpeditor(infCte))
+			.comProtocolo(this.montarProtocolo(prot))
+			.comImpostos(this.montarImpostos(infCte))
+			.comItens(this.montarDocumentos(infCte))
+			.comTipo("saida")
+			.comNaturezaDaOperacao(texto(ide?.natOp))
+			.comNumero(texto(ide?.nCT))
+			.comSerie(texto(ide?.serie))
+			.comDataDaEmissao(dataHora(ide?.dhEmi))
+			.comDataDaEntradaOuSaida(data(prot?.dhRecbto))
+			.comModalidadeDoFrete(texto(ide?.modal))
+			.comInscricaoEstadualDoSubstitutoTributario("")
+			.comInformacoesComplementares("")
+			.comValorTotalDosProdutos(numero(infCte?.infCTeNorm?.infCarga?.vCarga))
+			.comValorTotalDosServicos(numero(infCte?.vPrest?.vTPrest))
+			.comValorDoFrete(numero(infCte?.vPrest?.vRec));
+
+		return gerarPdfEmBase64(danfe, "cte", texto(prot?.tpAmb));
 	}
 }
 

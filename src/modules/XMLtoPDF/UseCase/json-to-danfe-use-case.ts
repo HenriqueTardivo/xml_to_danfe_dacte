@@ -1,4 +1,5 @@
 import type {
+	IinfProt,
 	INfe,
 	Icms_generico,
 	Iduplicata,
@@ -9,13 +10,26 @@ import Duplicata from "@/modules/pdf_generator/danfe-dacte/lib/duplicata";
 import Emitente from "@/modules/pdf_generator/danfe-dacte/lib/emitente";
 import Endereco from "@/modules/pdf_generator/danfe-dacte/lib/endereco";
 import Fatura from "@/modules/pdf_generator/danfe-dacte/lib/fatura";
-import Gerador from "@/modules/pdf_generator/danfe-dacte/lib/gerador";
+import { gerarPdfEmBase64 } from "@/modules/pdf_generator/danfe-dacte/lib/gerarPdfEmBase64";
 import Impostos from "@/modules/pdf_generator/danfe-dacte/lib/impostos";
 import Item from "@/modules/pdf_generator/danfe-dacte/lib/item";
 import Protocolo from "@/modules/pdf_generator/danfe-dacte/lib/protocolo";
 import Transportador from "@/modules/pdf_generator/danfe-dacte/lib/transportador";
 import Volumes from "@/modules/pdf_generator/danfe-dacte/lib/volumes";
-import { MaskFields } from "@/utils/MaskFields";
+import {
+	cep,
+	cnpj,
+	data,
+	hora,
+	lista,
+	maiusculas,
+	numero,
+	primeiro,
+	texto,
+} from "@/utils/campos-do-xml";
+
+type InfNFe = NonNullable<INfe["nfeProc"]>["NFe"]["infNFe"];
+type Det = InfNFe["det"];
 
 class JsonToDanfe {
 	find_ICMS_prod(imposto: Record<string, any>): Icms_generico {
@@ -52,417 +66,213 @@ class JsonToDanfe {
 		}[tipoIcms];
 	}
 
-	async jsonToPDF(json: INfe): Promise<string> {
-		const maskFields = new MaskFields();
+	private montarEmitente(infNFe?: InfNFe): Emitente {
+		const emit = infNFe?.emit;
+		const ender = emit?.enderEmit;
 
-		let pdfBase64 = "";
-
-		const emitente = new Emitente();
-		emitente.comNome(json.nfeProc?.NFe.infNFe.emit.xNome?._text);
-		emitente.comRegistroNacional(
-			maskFields.maskCnpj(json.nfeProc?.NFe.infNFe.emit.CNPJ?._text),
-		);
-		emitente.comInscricaoEstadual(json.nfeProc?.NFe.infNFe.emit.IE?._text);
-		emitente.comTelefone(json.nfeProc?.NFe.infNFe.emit?.enderEmit?.fone?._text);
-		emitente.comEmail(json.nfeProc?.NFe.infNFe.emit?.enderEmit?.email?._text);
-
-		emitente.comEndereco(
-			new Endereco()
-				.comLogradouro(json.nfeProc?.NFe.infNFe.emit.enderEmit.xLgr?._text)
-				.comNumero(`N°${json.nfeProc?.NFe.infNFe.emit.enderEmit.nro?._text}`)
-				.comComplemento(json.nfeProc?.NFe.infNFe.emit.enderEmit.xCpl?._text)
-				.comCep(
-					maskFields.maskCEP(
-						json.nfeProc?.NFe.infNFe.emit.enderEmit.CEP?._text,
-					),
-				)
-				.comBairro(json.nfeProc?.NFe.infNFe.emit.enderEmit.xBairro?._text)
-				.comMunicipio(json.nfeProc?.NFe.infNFe.emit.enderEmit?.xMun?._text)
-				.comCidade(json.nfeProc?.NFe.infNFe.emit.enderEmit.xMun?._text)
-				.comUf(json.nfeProc?.NFe.infNFe.emit.enderEmit.UF?._text),
-		);
-
-		const destinatario = new Destinatario();
-		destinatario.comNome(json.nfeProc?.NFe.infNFe.dest.xNome?._text);
-		destinatario.comRegistroNacional(
-			maskFields.maskCnpj(json.nfeProc?.NFe.infNFe.dest.CNPJ?._text),
-		);
-		destinatario.comTelefone(
-			json.nfeProc?.NFe.infNFe?.dest?.enderDest?.fone?._text,
-		);
-		destinatario.comInscricaoEstadual(
-			json.nfeProc?.NFe.infNFe?.dest?.IE?._text,
-		);
-		destinatario.comEndereco(
-			new Endereco()
-				.comLogradouro(json.nfeProc?.NFe.infNFe.dest.enderDest.xLgr?._text)
-				.comNumero(json.nfeProc?.NFe.infNFe.dest.enderDest.nro?._text)
-				// .comComplemento("complemento")
-				.comCep(
-					maskFields.maskCEP(
-						json.nfeProc?.NFe.infNFe.dest.enderDest.CEP?._text,
-					),
-				)
-				.comBairro(json.nfeProc?.NFe.infNFe.dest.enderDest.xBairro?._text)
-				.comMunicipio(json.nfeProc?.NFe.infNFe.dest.enderDest.xMun?._text)
-				.comCidade(json.nfeProc?.NFe.infNFe.dest.enderDest.xMun?._text)
-				.comUf(json.nfeProc?.NFe.infNFe.dest.enderDest.UF?._text),
-		);
-
-		const transportador = new Transportador();
-		transportador.comNome(
-			json.nfeProc?.NFe.infNFe.transp?.transporta?.xNome?._text,
-		);
-		transportador.comRegistroNacional(
-			maskFields.maskCnpj(
-				json.nfeProc?.NFe.infNFe.transp?.transporta?.CNPJ?._text,
-			),
-		);
-		transportador.comInscricaoEstadual(
-			json.nfeProc?.NFe.infNFe.transp?.transporta?.IE?._text,
-		);
-		// transportador.comCodigoAntt("");
-		transportador.comPlacaDoVeiculo(
-			json.nfeProc?.NFe.infNFe.transp?.veicTransp?.placa?._text,
-		);
-		transportador.comUfDaPlacaDoVeiculo(
-			json.nfeProc?.NFe.infNFe.transp?.veicTransp?.UF?._text,
-		);
-		transportador.comEndereco(
-			new Endereco()
-				.comLogradouro(
-					json.nfeProc?.NFe?.infNFe?.transp?.transporta?.xEnder?._text,
-				)
-				.comMunicipio(
-					json.nfeProc?.NFe?.infNFe?.transp?.transporta?.xMun?._text,
-				)
-				.comUf(json.nfeProc?.NFe?.infNFe?.transp?.transporta?.UF?._text),
-		);
-
-		const protocolo = new Protocolo();
-
-		protocolo.comData(
-			maskFields.maskDate(json.nfeProc?.protNFe.infProt.dhRecbto?._text),
-		);
-
-		protocolo.comCodigo(json.nfeProc?.protNFe.infProt.nProt?._text);
-		const impostos = new Impostos();
-		impostos.comBaseDeCalculoDoIcms(
-			maskFields.maskNumber(json.nfeProc?.NFe.infNFe.total?.ICMSTot.vBC?._text),
-		);
-		impostos.comValorDoIcms(
-			maskFields.maskNumber(
-				json.nfeProc?.NFe.infNFe.total?.ICMSTot.vICMS?._text,
-			),
-		);
-		impostos.comBaseDeCalculoDoIcmsSt(
-			maskFields.maskNumber(
-				json.nfeProc?.NFe.infNFe.total?.ICMSTot.vBCST?._text,
-			),
-		);
-		impostos.comValorDoIcmsSt(
-			maskFields.maskNumber(json.nfeProc?.NFe.infNFe.total?.ICMSTot.vST?._text),
-		);
-		impostos.comValorDoImpostoDeImportacao(
-			maskFields.maskNumber(json.nfeProc?.NFe.infNFe.total.ICMSTot.vII._text),
-		);
-		impostos.comValorDoPis(
-			maskFields.maskNumber(
-				json.nfeProc?.NFe.infNFe.total?.ICMSTot.vPIS?._text,
-			),
-		);
-		impostos.comValorTotalDoIpi(
-			maskFields.maskNumber(
-				json.nfeProc?.NFe.infNFe.total?.ICMSTot.vIPI?._text,
-			),
-		);
-		impostos.comValorDaCofins(
-			maskFields.maskNumber(
-				json.nfeProc?.NFe.infNFe.total?.ICMSTot.vCOFINS?._text,
-			),
-		);
-		impostos.comValorTotTrib(
-			maskFields.maskNumber(
-				json.nfeProc?.NFe.infNFe.total?.ICMSTot?.vTotTrib?._text,
-			),
-		);
-		impostos.comValorFCP(
-			maskFields.maskNumber(
-				json.nfeProc?.NFe.infNFe.total?.ICMSTot?.vFCP?._text,
-			),
-		);
-		impostos.comValorICMSufRemet(
-			maskFields.maskNumber(
-				json.nfeProc?.NFe.infNFe.total?.ICMSTot?.vICMSUFRemet?._text,
-			),
-		);
-		impostos.comValorICMSufDest(
-			maskFields.maskNumber(
-				json.nfeProc?.NFe.infNFe.total?.ICMSTot?.vICMSUFDest?._text,
-			),
-		);
-		impostos.comBaseDeCalculoDoIssqn("");
-		impostos.comValorTotalDoIssqn("");
-
-		const volumes = new Volumes();
-		volumes.comQuantidade(
-			maskFields.maskNumber(json.nfeProc?.NFe.infNFe.transp?.vol?.qVol?._text),
-		);
-		volumes.comEspecie(json.nfeProc?.NFe.infNFe.transp?.vol?.esp?._text);
-		volumes.comMarca(json.nfeProc?.NFe.infNFe.transp?.vol?.marca?._text);
-		volumes.comPesoBruto(
-			maskFields.maskNumber(json.nfeProc?.NFe.infNFe.transp?.vol?.pesoB?._text),
-		);
-		volumes.comPesoLiquido(
-			maskFields.maskNumber(json.nfeProc?.NFe.infNFe.transp?.vol?.pesoL?._text),
-		);
-
-		const fatura = new Fatura();
-
-		if (json.nfeProc?.NFe?.infNFe?.cobr?.fat) {
-			fatura.comNumero(json.nfeProc?.NFe?.infNFe?.cobr?.fat?.nFat?._text);
-			fatura.comValorOriginal(
-				maskFields.maskNumber(
-					json.nfeProc?.NFe?.infNFe?.cobr?.fat?.vOrig?._text,
-				),
+		return new Emitente()
+			.comNome(texto(emit?.xNome))
+			.comRegistroNacional(cnpj(emit?.CNPJ))
+			.comInscricaoEstadual(texto(emit?.IE))
+			.comTelefone(texto(ender?.fone))
+			.comEmail(texto(ender?.email))
+			.comEndereco(
+				new Endereco()
+					.comLogradouro(texto(ender?.xLgr))
+					.comNumero(`N°${texto(ender?.nro)}`)
+					.comComplemento(texto(ender?.xCpl))
+					.comCep(cep(ender?.CEP))
+					.comBairro(texto(ender?.xBairro))
+					.comMunicipio(texto(ender?.xMun))
+					.comCidade(texto(ender?.xMun))
+					.comUf(texto(ender?.UF)),
 			);
-			fatura.comValorDoDesconto(
-				maskFields.maskNumber(
-					json.nfeProc?.NFe?.infNFe?.cobr?.fat?.vDesc?._text,
-				),
+	}
+
+	private montarDestinatario(infNFe?: InfNFe): Destinatario {
+		const dest = infNFe?.dest;
+		const ender = dest?.enderDest;
+
+		return new Destinatario()
+			.comNome(texto(dest?.xNome))
+			.comRegistroNacional(cnpj(dest?.CNPJ))
+			.comInscricaoEstadual(texto(dest?.IE))
+			.comTelefone(texto(ender?.fone))
+			.comEndereco(
+				new Endereco()
+					.comLogradouro(texto(ender?.xLgr))
+					.comNumero(texto(ender?.nro))
+					// .comComplemento("complemento")
+					.comCep(cep(ender?.CEP))
+					.comBairro(texto(ender?.xBairro))
+					.comMunicipio(texto(ender?.xMun))
+					.comCidade(texto(ender?.xMun))
+					.comUf(texto(ender?.UF)),
 			);
-			fatura.comValorLiquido(
-				maskFields.maskNumber(
-					json.nfeProc?.NFe?.infNFe?.cobr?.fat?.vLiq?._text,
-				),
-			);
-			fatura.comFormaDePagamento(
-				json.nfeProc?.NFe.infNFe.pag?.detPag?.indPag?._text,
-			);
+	}
+
+	private montarTransportador(infNFe?: InfNFe): Transportador {
+		const transp = infNFe?.transp;
+		const transporta = transp?.transporta;
+
+		return (
+			new Transportador()
+				.comNome(texto(transporta?.xNome))
+				.comRegistroNacional(cnpj(transporta?.CNPJ))
+				.comInscricaoEstadual(texto(transporta?.IE))
+				// .comCodigoAntt("")
+				.comPlacaDoVeiculo(texto(transp?.veicTransp?.placa))
+				.comUfDaPlacaDoVeiculo(texto(transp?.veicTransp?.UF))
+				.comEndereco(
+					new Endereco()
+						.comLogradouro(texto(transporta?.xEnder))
+						.comMunicipio(texto(transporta?.xMun))
+						.comUf(texto(transporta?.UF)),
+				)
+		);
+	}
+
+	private montarProtocolo(prot?: IinfProt): Protocolo {
+		return new Protocolo()
+			.comData(data(prot?.dhRecbto))
+			.comCodigo(texto(prot?.nProt));
+	}
+
+	private montarImpostos(infNFe?: InfNFe): Impostos {
+		const totais = infNFe?.total?.ICMSTot;
+
+		return new Impostos()
+			.comBaseDeCalculoDoIcms(numero(totais?.vBC))
+			.comValorDoIcms(numero(totais?.vICMS))
+			.comBaseDeCalculoDoIcmsSt(numero(totais?.vBCST))
+			.comValorDoIcmsSt(numero(totais?.vST))
+			.comValorDoImpostoDeImportacao(numero(totais?.vII))
+			.comValorDoPis(numero(totais?.vPIS))
+			.comValorTotalDoIpi(numero(totais?.vIPI))
+			.comValorDaCofins(numero(totais?.vCOFINS))
+			.comValorTotTrib(numero(totais?.vTotTrib))
+			.comValorFCP(numero(totais?.vFCP))
+			.comValorICMSufRemet(numero(totais?.vICMSUFRemet))
+			.comValorICMSufDest(numero(totais?.vICMSUFDest))
+			.comBaseDeCalculoDoIssqn("")
+			.comValorTotalDoIssqn("");
+	}
+
+	private montarVolumes(infNFe?: InfNFe): Volumes {
+		const vol = infNFe?.transp?.vol;
+
+		return new Volumes()
+			.comQuantidade(numero(vol?.qVol))
+			.comEspecie(texto(vol?.esp))
+			.comMarca(texto(vol?.marca))
+			.comPesoBruto(numero(vol?.pesoB))
+			.comPesoLiquido(numero(vol?.pesoL));
+	}
+
+	private montarFatura(infNFe?: InfNFe): Fatura {
+		const fat = infNFe?.cobr?.fat;
+
+		if (!fat) {
+			return new Fatura();
 		}
 
-		const danfe = new Danfe();
-		danfe.comChaveDeAcesso(json.nfeProc?.protNFe.infProt.chNFe?._text);
-		danfe.comEmitente(emitente);
-		danfe.comFatura(fatura);
-		danfe.comDestinatario(destinatario);
-		danfe.comTransportador(transportador);
-		danfe.comProtocolo(protocolo);
-		danfe.comImpostos(impostos);
-		danfe.comVolumes(volumes);
-		danfe.comTipo(json.nfeProc?.NFe.infNFe.ide.tpNF._text);
-		danfe.comNaturezaDaOperacao(json.nfeProc?.NFe.infNFe.ide.natOp?._text);
-		danfe.comNumero(json.nfeProc?.NFe.infNFe.ide.nNF?._text);
-		danfe.comSerie(json.nfeProc?.NFe.infNFe.ide.serie?._text);
+		return new Fatura()
+			.comNumero(texto(fat.nFat))
+			.comValorOriginal(numero(fat.vOrig))
+			.comValorDoDesconto(numero(fat.vDesc))
+			.comValorLiquido(numero(fat.vLiq))
+			.comFormaDePagamento(texto(infNFe?.pag?.detPag?.indPag));
+	}
+
+	private montarDuplicatas(infNFe?: InfNFe): Duplicata[] {
+		return lista<Iduplicata>(infNFe?.cobr?.dup).map((duplicata) =>
+			new Duplicata()
+				.comNumero(texto(duplicata?.nDup))
+				.comVencimento(data(duplicata?.dVenc))
+				.comValor(numero(duplicata?.vDup)),
+		);
+	}
+
+	private montarItens(infNFe?: InfNFe): Item[] {
+		return lista<Det>(infNFe?.det).map((det) => {
+			const icms = this.find_ICMS_prod(det.imposto?.ICMS || det.imposto?.ICMSSN);
+			const ipi = det.imposto?.IPI?.IPITrib;
+
+			return new Item()
+				.comCodigo(texto(det.prod?.cProd))
+				.comDescricao(texto(det.prod?.xProd))
+				.comNcmSh(texto(det.prod?.NCM))
+				.comOCst(`${texto(icms?.orig)}${texto(icms?.CST)}`)
+				.comCfop(texto(det.prod?.CFOP))
+				.comUnidade(maiusculas(det.prod?.uCom))
+				.comQuantidade(numero(det.prod?.qCom))
+				.comValorUnitario(numero(det.prod?.vUnCom))
+				.comValorTotal(numero(det.prod?.vProd))
+				.comBaseDeCalculoDoIcms(numero(icms?.vBC))
+				.comValorDoIcms(numero(icms?.vICMS))
+				.comValorDoIpi(numero(ipi?.vIPI))
+				.comAliquotaDoIcms(numero(icms?.pICMS))
+				.comAliquotaDoIpi(numero(ipi?.pIPI));
+		});
+	}
+
+	jsonToPDF(json: INfe): Promise<string> {
+		const infNFe = json.nfeProc?.NFe?.infNFe;
+		const prot = json.nfeProc?.protNFe?.infProt;
+		const ide = infNFe?.ide;
+		const totais = infNFe?.total?.ICMSTot;
+		const infAdic = infNFe?.infAdic;
+
+		const danfe = new Danfe()
+			.comChaveDeAcesso(texto(prot?.chNFe))
+			.comEmitente(this.montarEmitente(infNFe))
+			.comDestinatario(this.montarDestinatario(infNFe))
+			.comTransportador(this.montarTransportador(infNFe))
+			.comProtocolo(this.montarProtocolo(prot))
+			.comImpostos(this.montarImpostos(infNFe))
+			.comVolumes(this.montarVolumes(infNFe))
+			.comFatura(this.montarFatura(infNFe))
+			.comDuplicatas(this.montarDuplicatas(infNFe))
+			.comItens(this.montarItens(infNFe))
+			.comTipo(texto(ide?.tpNF))
+			.comNaturezaDaOperacao(texto(ide?.natOp))
+			.comNumero(texto(ide?.nNF))
+			.comSerie(texto(ide?.serie))
+			.comModalidadeDoFrete(texto(infNFe?.transp?.modFrete))
+			.comInscricaoEstadualDoSubstitutoTributario(texto(infNFe?.emit?.IEST))
+			.comValorTotalDaNota(numero(totais?.vNF))
+			.comValorTotalDosProdutos(numero(totais?.vProd))
+			.comValorTotalDosServicos(numero(totais?.vServ))
+			.comValorDoFrete(numero(totais?.vFrete))
+			.comValorDoSeguro(numero(totais?.vSeg))
+			.comDesconto(numero(totais?.vDesc))
+			.comOutrasDespesas(numero(totais?.vOutro));
+
+		// NOTE: legacy preserved — os template literals transformam a ausência do
+		// campo na string "undefined", que é truthy; na prática só o primeiro
+		// operando do `||` decide. Mantido para não alterar o PDF gerado.
 		danfe.comInformacoesComplementares(
-			json.nfeProc?.NFe?.infNFe?.infAdic?.infAdFisco?._text ||
-				`${json.nfeProc?.NFe?.infNFe?.infAdic?.infCpl?._text}` ||
-				`${json.nfeProc?.NFe?.infNFe?.infAdic?.obsCont?._text}` ||
-				`${json.nfeProc?.NFe?.infNFe?.infAdic?.obsFisco?._text}` ||
-				`${json.nfeProc?.NFe?.infNFe?.infAdic?.procRef?._text}` ||
+			texto(infAdic?.infAdFisco) ||
+				`${texto(infAdic?.infCpl)}` ||
+				`${texto(infAdic?.obsCont)}` ||
+				`${texto(infAdic?.obsFisco)}` ||
+				`${texto(infAdic?.procRef)}` ||
 				"",
 		);
 
-		if (
-			json.nfeProc?.NFe?.infNFe?.cobr?.dup &&
-			Array.isArray(json.nfeProc?.NFe?.infNFe?.cobr?.dup)
-		) {
-			danfe.comDuplicatas(
-				json.nfeProc?.NFe?.infNFe?.cobr?.dup.map((duplicata: Iduplicata) => {
-					return new Duplicata()
-						.comNumero(duplicata?.nDup?._text)
-						.comVencimento(maskFields.maskDate(duplicata?.dVenc?._text))
-						.comValor(maskFields.maskNumber(duplicata?.vDup?._text));
-				}),
-			);
-		} else if (json.nfeProc?.NFe?.infNFe?.cobr?.dup) {
-			danfe.comDuplicatas(
-				Array(
-					new Duplicata()
-						.comNumero(json.nfeProc?.NFe?.infNFe?.cobr?.dup?.nDup?._text)
-						.comVencimento(
-							maskFields.maskDate(
-								json.nfeProc?.NFe?.infNFe?.cobr?.dup?.dVenc._text,
-							),
-						)
-						.comValor(
-							maskFields.maskNumber(
-								json.nfeProc?.NFe?.infNFe?.cobr?.dup?.vDup?._text,
-							),
-						),
-				),
-			);
+		// A NF-e traz a emissão em `dhEmi` (layout 4.00) ou `dEmi` (layout antigo).
+		const emissao = primeiro(ide?.dhEmi, ide?.dEmi);
+		if (emissao) {
+			danfe.comDataDaEmissao(data(emissao));
 		}
 
-		if (json.nfeProc?.NFe.infNFe.ide.dhEmi?._text) {
-			danfe.comDataDaEmissao(
-				maskFields.maskDate(json.nfeProc?.NFe.infNFe.ide.dhEmi?._text),
-			);
-		} else if (json.nfeProc?.NFe.infNFe.ide.dEmi?._text) {
-			danfe.comDataDaEmissao(
-				maskFields.maskDate(json.nfeProc?.NFe.infNFe.ide.dEmi?._text),
-			);
+		if (texto(ide?.dhSaiEnt)) {
+			danfe
+				.comDataDaEntradaOuSaida(data(ide?.dhSaiEnt))
+				.comHorarioEntradaSaida(hora(ide?.dhSaiEnt));
 		}
 
-		if (json.nfeProc?.NFe?.infNFe?.ide?.dhSaiEnt?._text) {
-			danfe.comDataDaEntradaOuSaida(
-				maskFields.maskDate(json.nfeProc?.NFe?.infNFe?.ide?.dhSaiEnt?._text),
-			);
-
-			danfe.comHorarioEntradaSaida(
-				maskFields.maskTime(json.nfeProc?.NFe?.infNFe?.ide?.dhSaiEnt?._text),
-			);
-		}
-
-		danfe.comModalidadeDoFrete(
-			json.nfeProc?.NFe.infNFe?.transp?.modFrete?._text,
-		);
-		danfe.comInscricaoEstadualDoSubstitutoTributario(
-			json.nfeProc?.NFe?.infNFe?.emit?.IEST?._text,
-		);
-
-		danfe.comValorTotalDaNota(
-			maskFields.maskNumber(json.nfeProc?.NFe.infNFe.total.ICMSTot.vNF?._text),
-		);
-		danfe.comValorTotalDosProdutos(
-			maskFields.maskNumber(
-				json.nfeProc?.NFe.infNFe.total?.ICMSTot?.vProd?._text,
-			),
-		);
-		danfe.comValorTotalDosServicos(
-			maskFields.maskNumber(
-				json.nfeProc?.NFe.infNFe.total?.ICMSTot?.vServ?._text,
-			),
-		);
-		danfe.comValorDoFrete(
-			maskFields.maskNumber(
-				json.nfeProc?.NFe.infNFe.total?.ICMSTot?.vFrete?._text,
-			),
-		);
-		danfe.comValorDoSeguro(
-			maskFields.maskNumber(
-				json.nfeProc?.NFe.infNFe.total?.ICMSTot?.vSeg?._text,
-			),
-		);
-		danfe.comDesconto(
-			maskFields.maskNumber(
-				json.nfeProc?.NFe.infNFe.total?.ICMSTot?.vDesc?._text,
-			),
-		);
-		danfe.comOutrasDespesas(
-			maskFields.maskNumber(
-				json.nfeProc?.NFe.infNFe.total?.ICMSTot?.vOutro?._text,
-			),
-		);
-
-		if (
-			json.nfeProc?.NFe.infNFe.det &&
-			Array.isArray(json.nfeProc?.NFe.infNFe.det)
-		) {
-			for (const item of json.nfeProc.NFe.infNFe.det) {
-				const icms = this.find_ICMS_prod(
-					item.imposto?.ICMS || item.imposto?.ICMSSN,
-				);
-
-				danfe.adicionarItem(
-					new Item()
-						.comCodigo(item.prod?.cProd?._text)
-						.comDescricao(item.prod?.xProd?._text)
-						.comNcmSh(item.prod?.NCM?._text)
-						.comOCst(`${icms?.orig?._text}${icms?.CST?._text}`)
-						.comCfop(item.prod?.CFOP?._text)
-						.comUnidade(String(item.prod?.uCom?._text).toUpperCase())
-						.comQuantidade(maskFields.maskNumber(item.prod?.qCom?._text))
-						.comValorUnitario(maskFields.maskNumber(item.prod?.vUnCom?._text))
-						.comValorTotal(maskFields.maskNumber(item.prod?.vProd?._text))
-						.comBaseDeCalculoDoIcms(maskFields.maskNumber(icms?.vBC?._text))
-						.comValorDoIcms(maskFields.maskNumber(icms?.vICMS?._text))
-						.comValorDoIpi(
-							maskFields.maskNumber(item.imposto?.IPI?.IPITrib?.vIPI?._text),
-						)
-						.comAliquotaDoIcms(maskFields.maskNumber(icms?.pICMS?._text))
-						.comAliquotaDoIpi(
-							maskFields.maskNumber(item.imposto?.IPI?.IPITrib?.pIPI?._text),
-						),
-				);
-			}
-		} else if (json.nfeProc?.NFe.infNFe.det) {
-			const icms = this.find_ICMS_prod(
-				json.nfeProc?.NFe.infNFe.det?.imposto?.ICMS,
-			);
-
-			danfe.adicionarItem(
-				new Item()
-					.comCodigo(json.nfeProc?.NFe.infNFe.det?.prod?.cProd?._text)
-					.comDescricao(json.nfeProc?.NFe.infNFe.det?.prod?.xProd?._text)
-					.comNcmSh(json.nfeProc?.NFe.infNFe.det?.prod?.NCM?._text)
-					.comOCst(`${icms?.orig?._text}${icms?.CST?._text}`)
-					.comCfop(json.nfeProc?.NFe.infNFe.det?.prod?.CFOP?._text)
-					.comUnidade(
-						String(
-							json.nfeProc?.NFe.infNFe.det?.prod?.uCom?._text,
-						).toUpperCase(),
-					)
-					.comQuantidade(
-						maskFields.maskNumber(
-							json.nfeProc?.NFe.infNFe.det?.prod?.qCom?._text,
-						),
-					)
-					.comValorUnitario(
-						maskFields.maskNumber(
-							json.nfeProc?.NFe.infNFe.det?.prod?.vUnCom?._text,
-						),
-					)
-					.comValorTotal(
-						maskFields.maskNumber(
-							json.nfeProc?.NFe.infNFe.det?.prod?.vProd?._text,
-						),
-					)
-					.comBaseDeCalculoDoIcms(maskFields.maskNumber(icms?.vBC?._text))
-					.comValorDoIcms(maskFields.maskNumber(icms?.vICMS?._text))
-					.comValorDoIpi(
-						maskFields.maskNumber(
-							json.nfeProc.NFe.infNFe.det.imposto?.IPI?.IPITrib?.vIPI?._text,
-						),
-					)
-					.comAliquotaDoIcms(maskFields.maskNumber(icms?.pICMS?._text))
-					.comAliquotaDoIpi(
-						maskFields.maskNumber(
-							json.nfeProc.NFe.infNFe.det.imposto?.IPI?.IPITrib?.pIPI?._text,
-						),
-					),
-			);
-		}
-
-		new Gerador(danfe).gerarPDF(
-			{
-				ambiente:
-					json.nfeProc?.protNFe.infProt.tpAmb._text === "2"
-						? "homologacao"
-						: "producao",
-				ajusteYDoLogotipo: -4,
-				ajusteYDaIdentificacaoDoEmitente: 4,
-				creditos: "",
-			},
-			(err: Error, pdf: PDFKit.PDFDocument) => {
-				if (err) {
-					throw err;
-				}
-
-				const chunks: Buffer[] = [];
-
-				pdf.on("data", (chunk: Buffer) => {
-					chunks.push(chunk);
-				});
-
-				pdf.on("end", () => {
-					const data = Buffer.concat(chunks);
-					pdfBase64 = data.toString("base64");
-				});
-			},
-		);
-
-		return new Promise((resolve) => setTimeout(() => resolve(pdfBase64)));
+		return gerarPdfEmBase64(danfe, "danfe", texto(prot?.tpAmb));
 	}
 }
 

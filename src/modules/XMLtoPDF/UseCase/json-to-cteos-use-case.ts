@@ -1,12 +1,17 @@
 import type { ICteOS } from "@/modules/interfaces/ICteOS";
+import type { IinfProt } from "@/modules/interfaces/INfe";
 import CteInfo from "@/modules/pdf_generator/danfe-dacte/lib/cteInfo";
 import Danfe from "@/modules/pdf_generator/danfe-dacte/lib/danfe";
 import Destinatario from "@/modules/pdf_generator/danfe-dacte/lib/destinatario";
 import Emitente from "@/modules/pdf_generator/danfe-dacte/lib/emitente";
 import Endereco from "@/modules/pdf_generator/danfe-dacte/lib/endereco";
-import Gerador from "@/modules/pdf_generator/danfe-dacte/lib/gerador";
+import { gerarPdfEmBase64 } from "@/modules/pdf_generator/danfe-dacte/lib/gerarPdfEmBase64";
 import Protocolo from "@/modules/pdf_generator/danfe-dacte/lib/protocolo";
-import { MaskFields } from "@/utils/MaskFields";
+import { cep, cnpj, data, dataHora, texto } from "@/utils/campos-do-xml";
+
+type InfCteOS = NonNullable<
+	NonNullable<ICteOS["cteOSProc"]>["CTeOS"]
+>["infCte"];
 
 /**
  * DACTE-OS (modelo 67) generator.
@@ -23,7 +28,60 @@ import { MaskFields } from "@/utils/MaskFields";
  * remaining work is purely the field mapping.
  */
 class JsonToCTEOS {
-	async jsonToPDF(json: ICteOS): Promise<string> {
+	/** Emitente — estrutura idêntica à do modelo 57. */
+	private montarEmitente(infCte?: InfCteOS): Emitente {
+		const emit = infCte?.emit;
+		const ender = emit?.enderEmit;
+
+		return new Emitente()
+			.comNome(texto(emit?.xNome))
+			.comRegistroNacional(cnpj(emit?.CNPJ))
+			.comInscricaoEstadual(texto(emit?.IE))
+			.comTelefone(texto(ender?.fone))
+			.comEmail("")
+			.comEndereco(
+				new Endereco()
+					.comLogradouro(texto(ender?.xLgr))
+					.comNumero(texto(ender?.nro))
+					.comComplemento(texto(ender?.xCpl))
+					.comCep(cep(ender?.CEP))
+					.comBairro(texto(ender?.xBairro))
+					.comMunicipio(texto(ender?.xMun))
+					.comCidade(texto(ender?.xMun))
+					.comUf(texto(ender?.UF)),
+			);
+	}
+
+	/**
+	 * TODO(model-67): o CT-e OS traz um único bloco `toma` de tomador, com
+	 * formato diferente do modelo 57. Mapear explicitamente quando houver um
+	 * XML de exemplo; por ora reaproveitamos `dest` quando presente.
+	 */
+	private montarDestinatario(infCte?: InfCteOS): Destinatario {
+		const dest = infCte?.dest;
+
+		return new Destinatario()
+			.comNome(texto(dest?.xNome))
+			.comRegistroNacional(cnpj(dest?.CNPJ))
+			.comInscricaoEstadual(texto(dest?.IE))
+			.comEndereco(new Endereco());
+	}
+
+	private montarProtocolo(prot?: IinfProt): Protocolo {
+		return new Protocolo()
+			.comCodigo(texto(prot?.nProt))
+			.comData(data(prot?.dhRecbto));
+	}
+
+	private montarCteInfo(infCte?: InfCteOS): CteInfo {
+		const ide = infCte?.ide;
+
+		return new CteInfo()
+			.comModelo(texto(ide?.mod))
+			.comCfopFrete(`${texto(ide?.CFOP) ?? ""} - ${texto(ide?.natOp) ?? ""}`);
+	}
+
+	jsonToPDF(json: ICteOS): Promise<string> {
 		const infCte = json.cteOSProc?.CTeOS?.infCte;
 		const prot = json.cteOSProc?.protCTe?.infProt;
 
@@ -33,87 +91,24 @@ class JsonToCTEOS {
 			);
 		}
 
-		const maskFields = new MaskFields();
-		let pdfBase64 = "";
-
-		// --- Emitente (shared with modelo 57) -----------------------------------
-		const emitente = new Emitente();
-		emitente.comNome(infCte.emit?.xNome?._text);
-		emitente.comRegistroNacional(maskFields.maskCnpj(infCte.emit?.CNPJ?._text));
-		emitente.comInscricaoEstadual(infCte.emit?.IE?._text);
-		emitente.comTelefone(infCte.emit?.enderEmit?.fone?._text);
-		emitente.comEmail("");
-		emitente.comEndereco(
-			new Endereco()
-				.comLogradouro(infCte.emit?.enderEmit?.xLgr?._text)
-				.comNumero(infCte.emit?.enderEmit?.nro?._text)
-				.comComplemento(infCte.emit?.enderEmit?.xCpl?._text)
-				.comCep(maskFields.maskCEP(infCte.emit?.enderEmit?.CEP?._text))
-				.comBairro(infCte.emit?.enderEmit?.xBairro?._text)
-				.comMunicipio(infCte.emit?.enderEmit?.xMun?._text)
-				.comCidade(infCte.emit?.enderEmit?.xMun?._text)
-				.comUf(infCte.emit?.enderEmit?.UF?._text),
-		);
-
-		// --- Tomador / Destinatário --------------------------------------------
-		// TODO(model-67): CT-e OS carries a single "toma" tomador block whose
-		// shape differs from the modelo 57. Map it explicitly once a sample is
-		// available; for now we reuse `dest` when present.
-		const destinatario = new Destinatario();
-		destinatario.comNome(infCte.dest?.xNome?._text);
-		destinatario.comRegistroNacional(
-			maskFields.maskCnpj(infCte.dest?.CNPJ?._text),
-		);
-		destinatario.comInscricaoEstadual(infCte.dest?.IE?._text);
-		destinatario.comEndereco(new Endereco());
-
-		// --- Protocolo (shared) -------------------------------------------------
-		const protocolo = new Protocolo();
-		protocolo.comCodigo(prot?.nProt?._text);
-		protocolo.comData(maskFields.maskDate(prot?.dhRecbto?._text));
-
-		// --- Cabeçalho do CT-e --------------------------------------------------
-		const cteInfo = new CteInfo();
-		cteInfo.comModelo(infCte.ide?.mod?._text);
-		cteInfo.comCfopFrete(
-			`${infCte.ide?.CFOP?._text ?? ""} - ${infCte.ide?.natOp?._text ?? ""}`,
-		);
-
-		const danfe = new Danfe();
-		danfe.comChaveDeAcesso(prot?.chCTe?._text);
-		danfe.comEmitente(emitente);
-		danfe.comDestinatario(destinatario);
-		danfe.comCteInfo(cteInfo);
-		danfe.comProtocolo(protocolo);
-		danfe.comTipo("saida");
-		danfe.comNaturezaDaOperacao(infCte.ide?.natOp?._text);
-		danfe.comNumero(infCte.ide?.nCT?._text);
-		danfe.comSerie(infCte.ide?.serie?._text);
-		danfe.comDataDaEmissao(maskFields.maskDateTime(infCte.ide?.dhEmi?._text));
+		const ide = infCte.ide;
 
 		// TODO(model-67): map impostos, componentes do serviço (vPrest/Comp),
 		// documentos/itens (infCTeNorm), expeditor/recebedor and observações,
 		// mirroring json-to-cte-use-case but against the model-67 structure.
+		const danfe = new Danfe()
+			.comChaveDeAcesso(texto(prot?.chCTe))
+			.comEmitente(this.montarEmitente(infCte))
+			.comDestinatario(this.montarDestinatario(infCte))
+			.comCteInfo(this.montarCteInfo(infCte))
+			.comProtocolo(this.montarProtocolo(prot))
+			.comTipo("saida")
+			.comNaturezaDaOperacao(texto(ide?.natOp))
+			.comNumero(texto(ide?.nCT))
+			.comSerie(texto(ide?.serie))
+			.comDataDaEmissao(dataHora(ide?.dhEmi));
 
-		new Gerador(danfe).gerarCTEOS(
-			{
-				ambiente: prot?.tpAmb?._text === "2" ? "homologacao" : "producao",
-				ajusteYDoLogotipo: -4,
-				ajusteYDaIdentificacaoDoEmitente: 4,
-				creditos: "",
-			},
-			(err: Error, pdf: PDFKit.PDFDocument) => {
-				if (err) throw err;
-
-				const chunks: Buffer[] = [];
-				pdf.on("data", (chunk: Buffer) => chunks.push(chunk));
-				pdf.on("end", () => {
-					pdfBase64 = Buffer.concat(chunks).toString("base64");
-				});
-			},
-		);
-
-		return new Promise((resolve) => setTimeout(() => resolve(pdfBase64)));
+		return gerarPdfEmBase64(danfe, "cteos", texto(prot?.tpAmb));
 	}
 }
 

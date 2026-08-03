@@ -135,8 +135,9 @@ export default class Impostos {
 		this._valorTotalDoIssqn = _valorTotalDoIssqn;
 		return this;
 	}
-	comValorICMSufDest(_valorICMSufDest: Valor): void {
+	comValorICMSufDest(_valorICMSufDest: Valor): this {
 		this._valorICMSufDest = _valorICMSufDest;
+		return this;
 	}
 	getValorICMSufDest(): Valor {
 		return this._valorICMSufDest;
